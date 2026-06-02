@@ -81,6 +81,13 @@ public static class SeedData
 
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 10 artículos, 2 empleados.");
+        // Clientes
+        db.Clientes.AddRange(
+            new Cliente { Nombre = "Carlos Martínez", Cedula = "001-1234567-8", NoTarjetaCr = "1234", LimiteCredito = 5000.00m, TipoPersona = "Física" },
+            new Cliente { Nombre = "Ana López", Cedula = "001-7654321-9", NoTarjetaCr = "5678", LimiteCredito = 8000.00m, TipoPersona = "Jurídica" });
+
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 10 artículos, 2 empleados, 2 clientes.");
     }
 }
