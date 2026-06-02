@@ -49,6 +49,22 @@ public static class SeedData
 
         logger.LogInformation("Idiomas insertados.");
 
+        // Roles de elenco
+        var actor = new RolElenco { Descripcion = "Actor" };
+        var director = new RolElenco { Descripcion = "Director" };
+        db.RolesElenco.AddRange(actor, director);
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Roles de elenco insertados.");
+
+        // Elenco
+        var arnold = new Elenco { Nombre = "Arnold Schwarzenegger" };
+        var bradley = new Elenco { Nombre = "Bradley Cooper" };
+        db.Elenco.AddRange(arnold, bradley);
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Elenco insertados.");
+
         // Relaciones TipoArticulo ↔ Genero
         db.TiposArticulosGeneros.AddRange(
             new TipoArticuloGenero { TipoArticulo = pelicula, Genero = accion },
@@ -62,9 +78,11 @@ public static class SeedData
             new TipoArticuloGenero { TipoArticulo = libro, Genero = fantasia });
 
         // Artículos
+        var terminator = new Articulo { Titulo = "Terminator", TipoArticulo = pelicula, Genero = accion, Idioma = espanol, RentaPorDia = 2.5m, DiasRenta = 3, MontoEntregaTardia = 5, Stock = 10 };
+        var hangover = new Articulo { Titulo = "The Hangover", TipoArticulo = pelicula, Genero = comedia, Idioma = ingles, RentaPorDia = 2.0m, DiasRenta = 3, MontoEntregaTardia = 4, Stock = 8 };
         db.Articulos.AddRange(
-            new Articulo { Titulo = "Terminator", TipoArticulo = pelicula, Genero = accion, Idioma = espanol, RentaPorDia = 2.5m, DiasRenta = 3, MontoEntregaTardia = 5, Stock = 10 },
-            new Articulo { Titulo = "The Hangover", TipoArticulo = pelicula, Genero = comedia, Idioma = ingles, RentaPorDia = 2.0m, DiasRenta = 3, MontoEntregaTardia = 4, Stock = 8 },
+            terminator,
+            hangover,
             new Articulo { Titulo = "Titanic", TipoArticulo = pelicula, Genero = drama, Idioma = espanol, RentaPorDia = 3.0m, DiasRenta = 5, MontoEntregaTardia = 6, Stock = 5 },
             new Articulo { Titulo = "Abbey Road", TipoArticulo = cdMusica, Genero = rock, Idioma = ingles, RentaPorDia = 1.5m, DiasRenta = 7, MontoEntregaTardia = 3, Stock = 15 },
             new Articulo { Titulo = "Thriller", TipoArticulo = cdMusica, Genero = pop, Idioma = ingles, RentaPorDia = 1.5m, DiasRenta = 7, MontoEntregaTardia = 3, Stock = 20 },
@@ -73,6 +91,19 @@ public static class SeedData
             new Articulo { Titulo = "Steve Jobs", TipoArticulo = libro, Genero = biografia, Idioma = ingles, RentaPorDia = 1.0m, DiasRenta = 14, MontoEntregaTardia = 2, Stock = 5 },
             new Articulo { Titulo = "El Nombre del Viento", TipoArticulo = libro, Genero = fantasia, Idioma = espanol, RentaPorDia = 1.0m, DiasRenta = 14, MontoEntregaTardia = 2, Stock = 6 },
             new Articulo { Titulo = "Inception", TipoArticulo = pelicula, Genero = accion, Idioma = ingles, RentaPorDia = 2.5m, DiasRenta = 3, MontoEntregaTardia = 5, Stock = 10 });
+
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Artículos insertados.");
+
+        // Relaciones Elenco ↔ Artículo
+        db.ElencosArticulos.AddRange(
+            new ElencoArticulo { Articulo = terminator, Elenco = arnold, RolElenco = actor },
+            new ElencoArticulo { Articulo = hangover, Elenco = bradley, RolElenco = actor });
+
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Relaciones elenco-artículo insertadas.");
 
         // Empleados
         db.Empleados.AddRange(
@@ -88,6 +119,6 @@ public static class SeedData
 
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 10 artículos, 2 empleados, 2 clientes.");
+        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 2 relaciones elenco-artículo.");
     }
 }

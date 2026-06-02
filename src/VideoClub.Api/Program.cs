@@ -5,6 +5,7 @@ using Serilog;
 using VideoClub.Api.Data;
 using VideoClub.Api.Features.Articulos;
 using VideoClub.Api.Features.Clientes;
+using VideoClub.Api.Features.Elenco;
 using VideoClub.Api.Features.Empleados;
 using VideoClub.Api.Middleware;
 using VideoClub.Api.PipelineBehaviors;
@@ -47,6 +48,9 @@ app.MapGroup("/api/articulos")
 
 app.MapGroup("/api/clientes")
     .MapClienteEndpoints();
+
+app.MapGroup("/api/elenco")
+    .MapElencoEndpoints();
 
 app.MapGroup("/api/empleados")
     .MapEmpleadoEndpoints();
