@@ -7,6 +7,7 @@ using VideoClub.Api.Features.Articulos;
 using VideoClub.Api.Features.Clientes;
 using VideoClub.Api.Features.Elenco;
 using VideoClub.Api.Features.Empleados;
+using VideoClub.Api.Features.RentaDevolucion;
 using VideoClub.Api.Middleware;
 using VideoClub.Api.PipelineBehaviors;
 
@@ -54,6 +55,9 @@ app.MapGroup("/api/elenco")
 
 app.MapGroup("/api/empleados")
     .MapEmpleadoEndpoints();
+
+app.MapGroup("/api/rentas")
+    .MapRentaDevolucionEndpoints();
 
 if (app.Environment.IsDevelopment())
     await app.SeedAsync();

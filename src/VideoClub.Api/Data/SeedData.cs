@@ -106,19 +106,26 @@ public static class SeedData
         logger.LogInformation("Relaciones elenco-artículo insertadas.");
 
         // Empleados
-        db.Empleados.AddRange(
-            new Empleado { Nombre = "Juan Pérez", Cedula = "001-0000001-1", TandaLabor = TandaLabor.Matutina, PorcientoComision = 10m, FechaIngreso = new DateOnly(2024, 1, 15), NombreUsuario = "jperez", PasswordHash = "123456" },
-            new Empleado { Nombre = "María García", Cedula = "001-0000002-2", TandaLabor = TandaLabor.Vespertina, PorcientoComision = 12m, FechaIngreso = new DateOnly(2024, 3, 1), NombreUsuario = "mgarcia", PasswordHash = "123456" });
+        var jperez = new Empleado { Nombre = "Juan Pérez", Cedula = "001-0000001-1", TandaLabor = TandaLabor.Matutina, PorcientoComision = 10m, FechaIngreso = new DateOnly(2024, 1, 15), NombreUsuario = "jperez", PasswordHash = "123456" };
+        var mgarcia = new Empleado { Nombre = "María García", Cedula = "001-0000002-2", TandaLabor = TandaLabor.Vespertina, PorcientoComision = 12m, FechaIngreso = new DateOnly(2024, 3, 1), NombreUsuario = "mgarcia", PasswordHash = "123456" };
+        db.Empleados.AddRange(jperez, mgarcia);
 
         await db.SaveChangesAsync();
 
         // Clientes
-        db.Clientes.AddRange(
-            new Cliente { Nombre = "Carlos Martínez", Cedula = "001-1234567-8", NoTarjetaCr = "1234", LimiteCredito = 5000.00m, TipoPersona = "Física" },
-            new Cliente { Nombre = "Ana López", Cedula = "001-7654321-9", NoTarjetaCr = "5678", LimiteCredito = 8000.00m, TipoPersona = "Jurídica" });
+        var cmartinez = new Cliente { Nombre = "Carlos Martínez", Cedula = "001-1234567-8", NoTarjetaCr = "1234", LimiteCredito = 5000.00m, TipoPersona = "Física" };
+        var alopez = new Cliente { Nombre = "Ana López", Cedula = "001-7654321-9", NoTarjetaCr = "5678", LimiteCredito = 8000.00m, TipoPersona = "Jurídica" };
+        db.Clientes.AddRange(cmartinez, alopez);
 
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 2 relaciones elenco-artículo.");
+        // Rentas
+        db.RentasDevoluciones.AddRange(
+            new RentaDevolucion { NoRenta = "R-001", Empleado = jperez, Articulo = terminator, Cliente = cmartinez, FechaRenta = new DateTime(2025, 1, 10), MontoXdia = 2.5m, CantidadDias = 3, Comentario = "Primera renta" },
+            new RentaDevolucion { NoRenta = "R-002", Empleado = mgarcia, Articulo = hangover, Cliente = alopez, FechaRenta = new DateTime(2025, 2, 15), FechaDevolucion = new DateTime(2025, 2, 18), MontoXdia = 2.0m, CantidadDias = 3, Comentario = "Devuelta a tiempo" });
+
+        await db.SaveChangesAsync();
+
+        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 2 relaciones elenco-artículo, 2 rentas.");
     }
 }
