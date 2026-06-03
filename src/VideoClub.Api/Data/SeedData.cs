@@ -99,7 +99,9 @@ public static class SeedData
         // Relaciones Elenco ↔ Artículo
         db.ElencosArticulos.AddRange(
             new ElencoArticulo { Articulo = terminator, Elenco = arnold, RolElenco = actor },
-            new ElencoArticulo { Articulo = hangover, Elenco = bradley, RolElenco = actor });
+            new ElencoArticulo { Articulo = terminator, Elenco = arnold, RolElenco = director },
+            new ElencoArticulo { Articulo = hangover, Elenco = bradley, RolElenco = actor },
+            new ElencoArticulo { Articulo = hangover, Elenco = bradley, RolElenco = director });
 
         await db.SaveChangesAsync();
 
@@ -126,6 +128,6 @@ public static class SeedData
 
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 2 relaciones elenco-artículo, 2 rentas.");
+        logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 4 relaciones elenco-artículo, 2 rentas.");
     }
 }

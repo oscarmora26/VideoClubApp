@@ -52,6 +52,14 @@ public static class Endpoints
                 : Results.NotFound(new { error = result.Error });
         });
 
+        group.MapGet("/{elencoId:long}/articulos", async (long elencoId, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetElencoArticulosQuery(elencoId));
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.NotFound(new { error = result.Error });
+        });
+
         return group;
     }
 }
