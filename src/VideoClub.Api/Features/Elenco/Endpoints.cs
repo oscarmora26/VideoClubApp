@@ -3,6 +3,7 @@ using MediatR;
 using VideoClub.Api.Features.Elenco.Commands;
 using VideoClub.Api.Features.Elenco.Queries;
 using VideoClub.Shared.DTOs.Elenco;
+using VideoClub.Shared.DTOs.ElencoArticulo;
 
 namespace VideoClub.Api.Features.Elenco;
 
@@ -16,7 +17,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
-        });
+        }).WithName("GetAllElenco")
+          .WithSummary("Lista todos los miembros del elenco")
+          .WithDescription("Obtener todos los miembros del elenco")
+          .Produces<List<ElencoDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapGet("/{id:long}", async (long id, IMediator mediator) =>
         {
@@ -24,7 +29,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? result.Value is not null ? Results.Ok(result.Value) : Results.NotFound()
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("GetElencoById")
+          .WithSummary("Busca un miembro del elenco por ID")
+          .WithDescription("Obtener un miembro del elenco por ID")
+          .Produces<ElencoDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/", async (CreateElencoRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -33,7 +42,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Created($"/api/elenco/{result.Value!.Id}", result.Value)
                 : Results.BadRequest(new { error = result.Error });
-        });
+        }).WithName("CreateElenco")
+          .WithSummary("Crea un nuevo miembro del elenco")
+          .WithDescription("Crear un nuevo miembro del elenco")
+          .Produces<ElencoDto>(StatusCodes.Status201Created)
+          .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:long}", async (long id, UpdateElencoRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -42,7 +55,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("UpdateElenco")
+          .WithSummary("Actualiza un miembro del elenco existente")
+          .WithDescription("Actualizar un miembro del elenco")
+          .Produces<ElencoDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{id:long}", async (long id, IMediator mediator) =>
         {
@@ -50,7 +67,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("DeleteElenco")
+          .WithSummary("Elimina un miembro del elenco (soft delete)")
+          .WithDescription("Eliminar un miembro del elenco (soft delete)")
+          .Produces(StatusCodes.Status204NoContent)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/{elencoId:long}/articulos", async (long elencoId, IMediator mediator) =>
         {
@@ -58,8 +79,12 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("GetElencoArticulos")
+          .WithSummary("Obtiene los artículos de un elenco")
+          .WithDescription("Obtener los artículos asociados a un elenco")
+          .Produces<List<ElencoArticuloDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
-        return group;
+        return group.WithTags("Elenco");
     }
 }

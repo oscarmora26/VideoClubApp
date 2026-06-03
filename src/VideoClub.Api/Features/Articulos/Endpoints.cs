@@ -17,7 +17,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
-        });
+        }).WithName("GetAllArticulos")
+          .WithSummary("Lista todos los artículos")
+          .WithDescription("Obtener todos los artículos")
+          .Produces<List<ArticuloDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapGet("/{id:long}", async (long id, IMediator mediator) =>
         {
@@ -25,7 +29,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? result.Value is not null ? Results.Ok(result.Value) : Results.NotFound()
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("GetArticuloById")
+          .WithSummary("Busca un artículo por ID")
+          .WithDescription("Obtener un artículo por ID")
+          .Produces<ArticuloDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/", async (CreateArticuloRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -34,7 +42,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Created($"/api/articulos/{result.Value!.Id}", result.Value)
                 : Results.BadRequest(new { error = result.Error });
-        });
+        }).WithName("CreateArticulo")
+          .WithSummary("Crea un nuevo artículo")
+          .WithDescription("Crear un nuevo artículo")
+          .Produces<ArticuloDto>(StatusCodes.Status201Created)
+          .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:long}", async (long id, UpdateArticuloRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -43,7 +55,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("UpdateArticulo")
+          .WithSummary("Actualiza un artículo existente")
+          .WithDescription("Actualizar un artículo")
+          .Produces<ArticuloDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{id:long}", async (long id, IMediator mediator) =>
         {
@@ -51,16 +67,23 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("DeleteArticulo")
+          .WithSummary("Elimina un artículo (soft delete)")
+          .WithDescription("Eliminar un artículo (soft delete)")
+          .Produces(StatusCodes.Status204NoContent)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
-        // Elenco relationships
         group.MapGet("/{articuloId:long}/elenco", async (long articuloId, IMediator mediator) =>
         {
             var result = await mediator.Send(new GetArticuloElencoQuery(articuloId));
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("GetArticuloElenco")
+          .WithSummary("Obtiene el elenco de un artículo")
+          .WithDescription("Obtener el elenco asignado a un artículo")
+          .Produces<List<ElencoArticuloDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/{articuloId:long}/elenco", async (long articuloId, AddElencoToArticuloRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -69,7 +92,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Created($"/api/articulos/{result.Value!.ArticuloId}/elenco", result.Value)
                 : Results.BadRequest(new { error = result.Error });
-        });
+        }).WithName("AddElencoToArticulo")
+          .WithSummary("Asigna un elenco a un artículo")
+          .WithDescription("Agregar un miembro del elenco a un artículo")
+          .Produces<ElencoArticuloDto>(StatusCodes.Status201Created)
+          .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{articuloId:long}/elenco/{elencoId:long}", async (long articuloId, long elencoId, UpdateArticuloElencoRequest request, IMapper mapper, IMediator mediator) =>
         {
@@ -78,7 +105,11 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("UpdateArticuloElenco")
+          .WithSummary("Actualiza el rol de un elenco en un artículo")
+          .WithDescription("Actualizar el rol de un elenco en un artículo")
+          .Produces<ElencoArticuloDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{articuloId:long}/elenco/{elencoId:long}", async (long articuloId, long elencoId, IMediator mediator) =>
         {
@@ -86,8 +117,12 @@ public static class Endpoints
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(new { error = result.Error });
-        });
+        }).WithName("RemoveElencoFromArticulo")
+          .WithSummary("Desasigna un elenco de un artículo")
+          .WithDescription("Eliminar un elenco de un artículo (todos sus roles)")
+          .Produces(StatusCodes.Status204NoContent)
+          .ProducesProblem(StatusCodes.Status404NotFound);
 
-        return group;
+        return group.WithTags("Artículos");
     }
 }
