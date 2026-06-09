@@ -8,10 +8,12 @@ using VideoClub.Api.Features.Clientes;
 using VideoClub.Api.Features.Elenco;
 using VideoClub.Api.Features.Empleados;
 using VideoClub.Api.Features.Idiomas;
-using VideoClub.Api.Features.RentaDevolucion;
+using VideoClub.Api.Features.Rentas;
 using VideoClub.Api.Features.TiposArticulos;
 using VideoClub.Api.Middleware;
 using VideoClub.Api.PipelineBehaviors;
+
+AppContext.SetSwitch("Npgsql.EnableDateTimeKindConversion", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +61,7 @@ app.MapGroup("/api/empleados")
     .MapEmpleadoEndpoints();
 
 app.MapGroup("/api/rentas")
-    .MapRentaDevolucionEndpoints();
+    .MapRentaEndpoints();
 
 app.MapGroup("/api/tipos-articulos")
     .MapTipoArticuloEndpoints();

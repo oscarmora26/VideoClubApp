@@ -13,5 +13,5 @@ public class Empleado : AuditableEntity
     public string NombreUsuario { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
 
-    public ICollection<RentaDevolucion> Rentas { get; set; } = new List<RentaDevolucion>();
+    public ICollection<Renta> Rentas { get; set; } = new List<Renta>();
 }

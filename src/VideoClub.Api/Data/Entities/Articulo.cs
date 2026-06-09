@@ -16,5 +16,5 @@ public class Articulo : AuditableEntity
     public Genero Genero { get; set; } = null!;
     public Idioma Idioma { get; set; } = null!;
     public ICollection<ElencoArticulo> Elencos { get; set; } = new List<ElencoArticulo>();
-    public ICollection<RentaDevolucion> Rentas { get; set; } = new List<RentaDevolucion>();
+    public ICollection<RentaDetalle> RentaDetalles { get; set; } = new List<RentaDetalle>();
 }

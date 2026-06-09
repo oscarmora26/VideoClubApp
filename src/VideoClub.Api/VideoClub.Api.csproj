@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="Features\Productos\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="Features\Productos\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="Features\Productos\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="Features\Productos\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
@@ -29,10 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Productos\Commands\" />
-    <Folder Include="Features\Productos\Handlers\" />
-    <Folder Include="Features\Productos\Validators\" />
-    <Folder Include="Controllers\" />
     <Folder Include="Data\" />
     <Folder Include="Data\Migrations\" />
     <Folder Include="Middleware\" />

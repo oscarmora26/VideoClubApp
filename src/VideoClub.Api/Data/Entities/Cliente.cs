@@ -9,5 +9,5 @@ public class Cliente : AuditableEntity
     public decimal LimiteCredito { get; set; }
     public string TipoPersona { get; set; } = string.Empty;
 
-    public ICollection<RentaDevolucion> Rentas { get; set; } = new List<RentaDevolucion>();
+    public ICollection<Renta> Rentas { get; set; } = new List<Renta>();
 }

@@ -13,7 +13,30 @@ public static class SeedData
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
         if (await db.TiposArticulos.AnyAsync())
+        {
+            if (!await db.Clientes.AnyAsync())
+            {
+                db.Clientes.AddRange(
+                    new Cliente { Nombre = "Carlos Martínez", Cedula = "001-1234567-8", NoTarjetaCr = "1234", LimiteCredito = 5000.00m, TipoPersona = "Física" },
+                    new Cliente { Nombre = "Ana López", Cedula = "001-7654321-9", NoTarjetaCr = "5678", LimiteCredito = 8000.00m, TipoPersona = "Jurídica" });
+                await db.SaveChangesAsync();
+            }
+
+            if (!await db.Rentas.AnyAsync())
+            {
+                var catchupTerminator = await db.Articulos.FirstOrDefaultAsync(a => a.Titulo == "Terminator");
+                var catchupHangover = await db.Articulos.FirstOrDefaultAsync(a => a.Titulo == "The Hangover");
+                var catchupJperez = await db.Empleados.FirstOrDefaultAsync(e => e.NombreUsuario == "jperez");
+                var catchupMgarcia = await db.Empleados.FirstOrDefaultAsync(e => e.NombreUsuario == "mgarcia");
+                var catchupCmartinez = await db.Clientes.FirstOrDefaultAsync(c => c.Cedula == "001-1234567-8");
+                var catchupAlopez = await db.Clientes.FirstOrDefaultAsync(c => c.Cedula == "001-7654321-9");
+                if (catchupTerminator is not null && catchupHangover is not null && catchupJperez is not null && catchupMgarcia is not null && catchupCmartinez is not null && catchupAlopez is not null)
+                {
+                    await SeedRentasAsync(db, catchupTerminator, catchupHangover, catchupJperez, catchupMgarcia, catchupCmartinez, catchupAlopez);
+                }
+            }
             return;
+        }
 
         logger.LogInformation("Iniciando seed de la base de datos...");
 
@@ -122,12 +145,50 @@ public static class SeedData
         await db.SaveChangesAsync();
 
         // Rentas
-        db.RentasDevoluciones.AddRange(
-            new RentaDevolucion { NoRenta = "R-001", Empleado = jperez, Articulo = terminator, Cliente = cmartinez, FechaRenta = new DateTime(2025, 1, 10), MontoXdia = 2.5m, CantidadDias = 3, Comentario = "Primera renta" },
-            new RentaDevolucion { NoRenta = "R-002", Empleado = mgarcia, Articulo = hangover, Cliente = alopez, FechaRenta = new DateTime(2025, 2, 15), FechaDevolucion = new DateTime(2025, 2, 18), MontoXdia = 2.0m, CantidadDias = 3, Comentario = "Devuelta a tiempo" });
-
-        await db.SaveChangesAsync();
+        await SeedRentasAsync(db, terminator, hangover, jperez, mgarcia, cmartinez, alopez);
 
         logger.LogInformation("Seed completado exitosamente: 3 tipos, 9 géneros, 2 idiomas, 2 roles, 2 elencos, 10 artículos, 2 empleados, 2 clientes, 4 relaciones elenco-artículo, 2 rentas.");
+    }
+
+    private static DateTime UtcDate(int year, int month, int day) =>
+        new(year, month, day, 0, 0, 0, DateTimeKind.Utc);
+
+    private static async Task SeedRentasAsync(AppDbContext db, Articulo terminator, Articulo hangover, Empleado jperez, Empleado mgarcia, Cliente cmartinez, Cliente alopez)
+    {
+        var renta1 = new Renta
+        {
+            NoRenta = "R-001",
+            Empleado = jperez,
+            Cliente = cmartinez,
+            FechaRenta = UtcDate(2025, 1, 10),
+            FechaExpectedDevolucion = UtcDate(2025, 1, 13),
+            FechaDevolucionReal = UtcDate(2025, 1, 13),
+            MontoRetraso = 0,
+            EstadoRenta = "Devuelta",
+            Comentario = "Devuelta a tiempo",
+            Detalles = new List<RentaDetalle>
+            {
+                new RentaDetalle { Articulo = terminator, MontoPorDia = 2.5m, CantidadDias = 3, FechaDevolucionEsperada = UtcDate(2025, 1, 13), FechaDevolucionReal = UtcDate(2025, 1, 13), Comentario = "Terminator" }
+            }
+        };
+
+        var renta2 = new Renta
+        {
+            NoRenta = "R-002",
+            Empleado = mgarcia,
+            Cliente = alopez,
+            FechaRenta = UtcDate(2025, 2, 15),
+            FechaExpectedDevolucion = UtcDate(2025, 2, 18),
+            MontoRetraso = 0,
+            EstadoRenta = "Activa",
+            Comentario = "Aún no devuelta",
+            Detalles = new List<RentaDetalle>
+            {
+                new RentaDetalle { Articulo = hangover, MontoPorDia = 2.0m, CantidadDias = 3, FechaDevolucionEsperada = UtcDate(2025, 2, 18), Comentario = "The Hangover" }
+            }
+        };
+
+        db.Rentas.AddRange(renta1, renta2);
+        await db.SaveChangesAsync();
     }
 }
