@@ -28,9 +28,9 @@ public class UpdateArticuloHandler : IRequestHandler<UpdateArticuloCommand, Resu
             return Result<ArticuloDto>.Failure($"Artículo con Id {request.Id} no encontrado.");
 
         entity.Titulo = request.Titulo;
-        entity.TipoArticuloId = request.TipoArticuloId;
-        entity.GeneroId = request.GeneroId;
-        entity.IdiomaId = request.IdiomaId;
+        entity.TipoArticuloId = request.TipoArticuloId ?? 0;
+        entity.GeneroId = request.GeneroId ?? 0;
+        entity.IdiomaId = request.IdiomaId ?? 0;
         entity.RentaPorDia = request.RentaPorDia;
         entity.DiasRenta = request.DiasRenta;
         entity.MontoEntregaTardia = request.MontoEntregaTardia;

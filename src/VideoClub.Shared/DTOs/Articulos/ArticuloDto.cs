@@ -14,4 +14,5 @@ public record ArticuloDto
     public int DiasRenta { get; init; }
     public decimal MontoEntregaTardia { get; init; }
     public int Stock { get; init; }
+    public bool Estado { get; init; }
 }

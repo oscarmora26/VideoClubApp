@@ -4,4 +4,8 @@ using VideoClub.Shared.DTOs.Elenco;
 
 namespace VideoClub.Api.Features.Elenco.Commands;
 
-public record UpdateElencoCommand(long Id, string Nombre) : IRequest<Result<ElencoDto>>;
+public record UpdateElencoCommand : IRequest<Result<ElencoDto>>
+{
+    public long Id { get; init; }
+    public string Nombre { get; init; } = string.Empty;
+}

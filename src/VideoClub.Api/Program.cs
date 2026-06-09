@@ -7,6 +7,8 @@ using VideoClub.Api.Features.Articulos;
 using VideoClub.Api.Features.Clientes;
 using VideoClub.Api.Features.Elenco;
 using VideoClub.Api.Features.Empleados;
+using VideoClub.Api.Features.Generos;
+using VideoClub.Api.Features.RolesElenco;
 using VideoClub.Api.Features.Idiomas;
 using VideoClub.Api.Features.Rentas;
 using VideoClub.Api.Features.TiposArticulos;
@@ -35,10 +37,22 @@ builder.Services.AddTransient(
     typeof(IPipelineBehavior<,>),
     typeof(ValidationBehavior<,>));
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://localhost:7115")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseCors();
 
 if (app.Environment.IsDevelopment())
 {
@@ -68,6 +82,12 @@ app.MapGroup("/api/tipos-articulos")
 
 app.MapGroup("/api/idiomas")
     .MapIdiomaEndpoints();
+
+app.MapGroup("/api/generos")
+    .MapGeneroEndpoints();
+
+app.MapGroup("/api/roles-elenco")
+    .MapRolElencoEndpoints();
 
 if (app.Environment.IsDevelopment())
     await app.SeedAsync();

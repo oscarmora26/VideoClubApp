@@ -2,15 +2,15 @@ namespace VideoClub.Shared.DTOs.Rentas;
 
 public record UpdateRentaRequest
 {
-    public string NoRenta { get; init; } = string.Empty;
-    public long ClienteId { get; init; }
-    public long EmpleadoId { get; init; }
-    public DateTime FechaRenta { get; init; }
-    public DateTime? FechaExpectedDevolucion { get; init; }
-    public DateTime? FechaDevolucionReal { get; init; }
-    public decimal? MontoTotal { get; init; }
-    public decimal MontoRetraso { get; init; }
-    public string EstadoRenta { get; init; } = "Activa";
-    public string? Comentario { get; init; }
-    public List<UpdateRentaDetalleItem> Detalles { get; init; } = [];
+    public string NoRenta { get; set; } = string.Empty;
+    public long ClienteId { get; set; }
+    public long EmpleadoId { get; set; }
+    public DateTime FechaRenta { get; set; }
+    public DateTime? FechaExpectedDevolucion { get; set; }
+    public DateTime? FechaDevolucionReal { get; set; }
+    public decimal? MontoTotal { get; set; }
+    public decimal MontoRetraso { get; set; }
+    public string EstadoRenta { get; set; } = "Activa";
+    public string? Comentario { get; set; }
+    public List<UpdateRentaDetalleItem> Detalles { get; set; } = [];
 }

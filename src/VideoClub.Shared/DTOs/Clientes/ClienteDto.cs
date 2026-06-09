@@ -8,4 +8,5 @@ public record ClienteDto
     public string NoTarjetaCr { get; init; } = string.Empty;
     public decimal LimiteCredito { get; init; }
     public string TipoPersona { get; init; } = string.Empty;
+    public bool Estado { get; init; }
 }

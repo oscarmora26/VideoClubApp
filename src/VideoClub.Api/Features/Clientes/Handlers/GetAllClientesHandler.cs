@@ -21,7 +21,15 @@ public class GetAllClientesHandler : IRequestHandler<GetAllClientesQuery, Result
 
     public async Task<Result<List<ClienteDto>>> Handle(GetAllClientesQuery request, CancellationToken ct)
     {
-        var entities = await _db.Clientes.ToListAsync(ct);
+        var query = _db.Clientes.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            query = query.Where(c => c.Nombre.ToLower().Contains(request.Search.ToLower()) || c.Cedula.ToLower().Contains(request.Search.ToLower()));
+
+        if (request.Estado.HasValue)
+            query = query.Where(c => c.Estado == request.Estado.Value);
+
+        var entities = await query.ToListAsync(ct);
         var dtos = _mapper.Map<List<ClienteDto>>(entities);
         return Result<List<ClienteDto>>.Success(dtos);
     }

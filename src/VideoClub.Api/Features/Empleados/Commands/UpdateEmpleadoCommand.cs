@@ -5,13 +5,14 @@ using VideoClub.Shared.Enums;
 
 namespace VideoClub.Api.Features.Empleados.Commands;
 
-public record UpdateEmpleadoCommand(
-    long Id,
-    string Nombre,
-    string Cedula,
-    TandaLabor TandaLabor,
-    decimal PorcientoComision,
-    DateOnly FechaIngreso,
-    string NombreUsuario,
-    string Password
-) : IRequest<Result<EmpleadoDto>>;
+public record UpdateEmpleadoCommand : IRequest<Result<EmpleadoDto>>
+{
+    public long Id { get; init; }
+    public string Nombre { get; init; } = string.Empty;
+    public string Cedula { get; init; } = string.Empty;
+    public TandaLabor TandaLabor { get; init; }
+    public decimal PorcientoComision { get; init; }
+    public DateOnly FechaIngreso { get; init; }
+    public string NombreUsuario { get; init; } = string.Empty;
+    public string Password { get; init; } = string.Empty;
+}

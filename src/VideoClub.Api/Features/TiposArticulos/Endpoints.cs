@@ -1,5 +1,6 @@
 using MediatR;
 using VideoClub.Api.Features.TiposArticulos.Queries;
+using VideoClub.Shared.DTOs.Generos;
 using VideoClub.Shared.DTOs.TiposArticulos;
 
 namespace VideoClub.Api.Features.TiposArticulos;
@@ -30,6 +31,18 @@ public static class Endpoints
           .WithSummary("Busca un tipo de artículo por ID")
           .WithDescription("Obtener un tipo de artículo por ID")
           .Produces<TipoArticuloDto>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:long}/generos", async (long id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetGenerosByTipoQuery(id));
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.NotFound(new { error = result.Error });
+        }).WithName("GetGenerosByTipo")
+          .WithSummary("Obtiene los géneros de un tipo de artículo")
+          .WithDescription("Obtener los géneros asociados a un tipo de artículo")
+          .Produces<List<GeneroDto>>(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status404NotFound);
 
         return group.WithTags("Tipos de Artículo");

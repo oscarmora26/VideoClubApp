@@ -11,9 +11,9 @@ public static class Endpoints
 {
     public static RouteGroupBuilder MapArticuloEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (IMediator mediator) =>
+        group.MapGet("/", async (string? search, long? tipoArticuloId, bool? estado, IMediator mediator) =>
         {
-            var result = await mediator.Send(new GetAllArticulosQuery());
+            var result = await mediator.Send(new GetAllArticulosQuery { Search = search, TipoArticuloId = tipoArticuloId, Estado = estado });
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
@@ -121,6 +121,18 @@ public static class Endpoints
           .WithSummary("Desasigna un elenco de un artículo")
           .WithDescription("Eliminar un elenco de un artículo (todos sus roles)")
           .Produces(StatusCodes.Status204NoContent)
+          .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{id:long}/toggle-estado", async (long id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new ToggleArticuloEstadoCommand(id));
+            return result.IsSuccess
+                ? Results.Ok(new { estado = result.Value })
+                : Results.NotFound(new { error = result.Error });
+        }).WithName("ToggleArticuloEstado")
+          .WithSummary("Activa/Desactiva un artículo")
+          .WithDescription("Cambiar el estado de un artículo")
+          .Produces(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status404NotFound);
 
         return group.WithTags("Artículos");

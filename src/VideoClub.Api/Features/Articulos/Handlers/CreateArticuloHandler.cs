@@ -26,9 +26,9 @@ public class CreateArticuloHandler : IRequestHandler<CreateArticuloCommand, Resu
         var entity = new Articulo
         {
             Titulo = request.Titulo,
-            TipoArticuloId = request.TipoArticuloId,
-            GeneroId = request.GeneroId,
-            IdiomaId = request.IdiomaId,
+            TipoArticuloId = request.TipoArticuloId ?? 0,
+            GeneroId = request.GeneroId ?? 0,
+            IdiomaId = request.IdiomaId ?? 0,
             RentaPorDia = request.RentaPorDia,
             DiasRenta = request.DiasRenta,
             MontoEntregaTardia = request.MontoEntregaTardia,

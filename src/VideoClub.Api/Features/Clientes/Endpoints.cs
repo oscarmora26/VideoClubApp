@@ -10,9 +10,9 @@ public static class Endpoints
 {
     public static RouteGroupBuilder MapClienteEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (IMediator mediator) =>
+        group.MapGet("/", async (string? search, bool? estado, IMediator mediator) =>
         {
-            var result = await mediator.Send(new GetAllClientesQuery());
+            var result = await mediator.Send(new GetAllClientesQuery { Search = search, Estado = estado });
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
@@ -70,6 +70,18 @@ public static class Endpoints
           .WithSummary("Elimina un cliente (soft delete)")
           .WithDescription("Eliminar un cliente (soft delete)")
           .Produces(StatusCodes.Status204NoContent)
+          .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{id:long}/toggle-estado", async (long id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new ToggleClienteEstadoCommand(id));
+            return result.IsSuccess
+                ? Results.Ok(new { estado = result.Value })
+                : Results.NotFound(new { error = result.Error });
+        }).WithName("ToggleClienteEstado")
+          .WithSummary("Activa/Desactiva un cliente")
+          .WithDescription("Cambiar el estado de un cliente")
+          .Produces(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status404NotFound);
 
         return group.WithTags("Clientes");
