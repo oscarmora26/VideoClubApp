@@ -1,0 +1,309 @@
+@inject IArticuloService ArticuloService
+@inject ITipoArticuloService TipoArticuloService
+@inject IIdiomaService IdiomaService
+@inject IElencoService ElencoService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsEdit ? "Editar Artículo" : "Nuevo Artículo")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Título</MudText>
+            <MudTextField @bind-Value="_model.Titulo"
+                          Required="true"
+                          RequiredError="El título es requerido"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Tipo Artículo</MudText>
+            <MudSelect @bind-Value="_model.TipoArticuloId"
+                       @bind-Value:after="OnTipoChanged"
+                       Required="true"
+                       RequiredError="El tipo es requerido"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                @foreach (var tipo in _tiposArticulos)
+                {
+                    <MudSelectItem Value="@((long?)tipo.Id)">@tipo.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Género</MudText>
+            <MudSelect @bind-Value="_model.GeneroId"
+                       Required="true"
+                       RequiredError="El género es requerido"
+                       Variant="Variant.Outlined"
+                       Class="mb-3"
+                       Disabled="_generos.Count == 0">
+                @foreach (var genero in _generos)
+                {
+                    <MudSelectItem Value="@((long?)genero.Id)">@genero.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Idioma</MudText>
+            <MudSelect @bind-Value="_model.IdiomaId"
+                       Required="true"
+                       RequiredError="El idioma es requerido"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                @foreach (var idioma in _idiomas)
+                {
+                    <MudSelectItem Value="@((long?)idioma.Id)">@idioma.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Renta Por Día</MudText>
+            <MudNumericField @bind-Value="_model.RentaPorDia"
+                             T="decimal"
+                             Required="true"
+                             RequiredError="La renta por día es requerida"
+                             Variant="Variant.Outlined"
+                             Class="mb-3" />
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Días de Renta</MudText>
+            <MudNumericField @bind-Value="_model.DiasRenta"
+                             Variant="Variant.Outlined"
+                             Min="1"
+                             Class="mb-3" />
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Monto Entrega Tardía</MudText>
+            <MudNumericField @bind-Value="_model.MontoEntregaTardia"
+                             Variant="Variant.Outlined"
+                             Min="0"
+                             Class="mb-3" />
+
+            <MudText Typo="Typo.body2" Class="vc-form-label">Stock</MudText>
+            <MudNumericField @bind-Value="_model.Stock"
+                             Variant="Variant.Outlined"
+                             Min="0"
+                             Class="mb-3" />
+
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.subtitle1" Class="mb-2">Elenco</MudText>
+
+            <MudTable Items="_elencoItems" Hover="true" Striped="true" Dense="true" Elevation="0" Class="mb-3">
+                <HeaderContent>
+                    <MudTh>Persona</MudTh>
+                    <MudTh>Rol</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.ElencoNombre</MudTd>
+                    <MudTd>@context.RolDescripcion</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                       Color="Color.Error" Title="Eliminar"
+                                       OnClick="async () => _elencoItems.Remove(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            <MudPaper Elevation="0" Outlined="true" Class="pa-3">
+                <MudText Typo="Typo.body2" Class="mb-2">Agregar miembro al elenco</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="5">
+                        <MudAutocomplete T="ElencoDto" @bind-Value="_newElencoElenco"
+                                         Placeholder="Buscar persona..."
+                                         Variant="Variant.Outlined"
+                                         Dense="true"
+                                         SearchFunc="@SearchElenco"
+                                         ToStringFunc="@(e => e?.Nombre ?? "")" />
+                    </MudItem>
+                    <MudItem xs="12" sm="5">
+                        <MudSelect @bind-Value="_newElencoRolId"
+                                   Variant="Variant.Outlined"
+                                   Dense="true">
+                            @foreach (var rol in _rolesElenco)
+                            {
+                                <MudSelectItem Value="rol.Id">@rol.Descripcion</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="2" Class="d-flex align-center">
+                        <MudIconButton Icon="@Icons.Material.Filled.AddCircle"
+                                       Color="Color.Primary"
+                                       Title="Agregar"
+                                       Disabled="@(_newElencoElenco is null || _newElencoRolId <= 0)"
+                                       OnClick="@AddElencoItem" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default"
+                   OnClick="() => MudDialog.Close(DialogResult.Cancel())">
+            Cancelar
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@SaveAsync"
+                   Disabled="@_saving">
+            @(IsEdit ? "Guardar" : "Crear")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ArticuloDto? Articulo { get; set; }
+
+    private bool IsEdit => Articulo is not null;
+    private bool _saving;
+    private MudForm _form = null!;
+    private CreateArticuloRequest _model = new();
+    private List<TipoArticuloDto> _tiposArticulos = [];
+    private List<GeneroDto> _generos = [];
+    private List<IdiomaDto> _idiomas = [];
+    private List<ElencoArticuloDto> _elencoItems = [];
+    private List<RolElencoDto> _rolesElenco = [];
+    private ElencoDto? _newElencoElenco;
+    private long _newElencoRolId;
+    private List<ElencoDto> _elencoCache = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _tiposArticulos = await TipoArticuloService.GetAllAsync();
+            _idiomas = await IdiomaService.GetAllAsync();
+            _rolesElenco = await Http.GetFromJsonAsync<List<RolElencoDto>>("api/roles-elenco") ?? [];
+            _elencoCache = await ElencoService.GetAllAsync();
+        }
+        catch { }
+
+        if (Articulo is not null)
+        {
+            _model = new CreateArticuloRequest
+            {
+                Titulo = Articulo.Titulo,
+                TipoArticuloId = Articulo.TipoArticuloId,
+                GeneroId = Articulo.GeneroId,
+                IdiomaId = Articulo.IdiomaId,
+                RentaPorDia = Articulo.RentaPorDia,
+                DiasRenta = Articulo.DiasRenta,
+                MontoEntregaTardia = Articulo.MontoEntregaTardia,
+                Stock = Articulo.Stock
+            };
+
+            try
+            {
+                _elencoItems = await ArticuloService.GetElencoAsync(Articulo.Id);
+            }
+            catch { }
+
+            if (_model.TipoArticuloId is > 0)
+                await LoadGeneros();
+        }
+    }
+
+    private async Task LoadGeneros()
+    {
+        try
+        {
+            _generos = await TipoArticuloService.GetGenerosByTipoAsync(_model.TipoArticuloId ?? 0);
+        }
+        catch
+        {
+            _generos = [];
+        }
+    }
+
+    private async Task OnTipoChanged()
+    {
+        _model.GeneroId = null;
+        await LoadGeneros();
+    }
+
+    private async Task<IEnumerable<ElencoDto>> SearchElenco(string? search, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return _elencoCache.Take(10);
+        return _elencoCache.Where(e => e.Nombre.Contains(search, StringComparison.OrdinalIgnoreCase)).Take(10);
+    }
+
+    private void AddElencoItem()
+    {
+        if (_newElencoElenco is null) return;
+        var rol = _rolesElenco.FirstOrDefault(r => r.Id == _newElencoRolId);
+        if (rol is null) return;
+
+        if (_elencoItems.Any(e => e.ElencoId == _newElencoElenco.Id))
+        {
+            Snackbar.Add("Esta persona ya está en el elenco", Severity.Warning);
+            return;
+        }
+
+        _elencoItems.Add(new ElencoArticuloDto
+        {
+            ElencoId = _newElencoElenco.Id,
+            ElencoNombre = _newElencoElenco.Nombre,
+            RolElencoId = rol.Id,
+            RolDescripcion = rol.Descripcion
+        });
+
+        _newElencoElenco = null;
+        _newElencoRolId = 0;
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            if (IsEdit)
+            {
+                var request = new UpdateArticuloRequest
+                {
+                    Titulo = _model.Titulo,
+                    TipoArticuloId = _model.TipoArticuloId,
+                    GeneroId = _model.GeneroId,
+                    IdiomaId = _model.IdiomaId,
+                    RentaPorDia = _model.RentaPorDia,
+                    DiasRenta = _model.DiasRenta,
+                    MontoEntregaTardia = _model.MontoEntregaTardia,
+                    Stock = _model.Stock
+                };
+                await ArticuloService.UpdateAsync(Articulo!.Id, request);
+
+                var existingElenco = await ArticuloService.GetElencoAsync(Articulo.Id);
+                var toRemove = existingElenco.Where(e => !_elencoItems.Any(n => n.ElencoId == e.ElencoId)).ToList();
+                var toAdd = _elencoItems.Where(n => !existingElenco.Any(e => e.ElencoId == n.ElencoId)).ToList();
+
+                foreach (var item in toRemove)
+                    await ArticuloService.RemoveElencoAsync(Articulo.Id, item.ElencoId);
+
+                foreach (var item in toAdd)
+                    await ArticuloService.AddElencoAsync(Articulo.Id, new AddElencoToArticuloRequest { ElencoId = item.ElencoId, RolElencoId = item.RolElencoId });
+
+                Snackbar.Add("Artículo actualizado correctamente", Severity.Success);
+            }
+            else
+            {
+                var articulo = await ArticuloService.CreateAsync(_model);
+
+                foreach (var item in _elencoItems)
+                    await ArticuloService.AddElencoAsync(articulo!.Id, new AddElencoToArticuloRequest { ElencoId = item.ElencoId, RolElencoId = item.RolElencoId });
+
+                Snackbar.Add("Artículo creado correctamente", Severity.Success);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al guardar: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

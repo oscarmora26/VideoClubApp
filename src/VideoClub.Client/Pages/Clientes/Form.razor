@@ -1,0 +1,121 @@
+@inject IClienteService ClienteService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsEdit ? "Editar Cliente" : "Nuevo Cliente")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Nombre</MudText>
+            <MudTextField @bind-Value="_model.Nombre"
+                          Required="true"
+                          RequiredError="El nombre es requerido"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+            <MudText Typo="Typo.body2" Class="vc-form-label">Cédula</MudText>
+            <MudTextField @bind-Value="_model.Cedula"
+                          Required="true"
+                          RequiredError="La cédula es requerida"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+            <MudText Typo="Typo.body2" Class="vc-form-label">No. Tarjeta (4 dígitos)</MudText>
+            <MudTextField @bind-Value="_model.NoTarjetaCr"
+                          Variant="Variant.Outlined"
+                          HelperText="Máximo 4 dígitos numéricos"
+                          MaxLength="4"
+                          Class="mb-3" />
+            <MudText Typo="Typo.body2" Class="vc-form-label">Límite de Crédito</MudText>
+            <MudNumericField @bind-Value="_model.LimiteCredito"
+                             Variant="Variant.Outlined"
+                             Min="0"
+                             Class="mb-3" />
+            <MudText Typo="Typo.body2" Class="vc-form-label">Tipo Persona</MudText>
+            <MudSelect @bind-Value="_model.TipoPersona"
+                        Required="true"
+                        RequiredError="El tipo de persona es requerido"
+                        Variant="Variant.Outlined"
+                        Class="mb-3">
+                <MudSelectItem T="string" Value="@("Física")">Física</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Jurídica")">Jurídica</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default"
+                    OnClick="() => MudDialog.Close(DialogResult.Cancel())">
+            Cancelar
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@SaveAsync"
+                   Disabled="@_saving"
+                   StartIcon="@(IsEdit ? Icons.Material.Filled.Save : Icons.Material.Filled.Add)">
+            @(IsEdit ? "Guardar" : "Crear")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ClienteDto? Cliente { get; set; }
+
+    private bool IsEdit => Cliente is not null;
+    private bool _saving;
+    private MudForm _form = null!;
+    private CreateClienteRequest _model = new();
+
+    protected override void OnInitialized()
+    {
+        if (Cliente is not null)
+        {
+            _model = new CreateClienteRequest
+            {
+                Nombre = Cliente.Nombre,
+                Cedula = Cliente.Cedula,
+                NoTarjetaCr = Cliente.NoTarjetaCr,
+                LimiteCredito = Cliente.LimiteCredito,
+                TipoPersona = Cliente.TipoPersona
+            };
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            if (IsEdit)
+            {
+                var request = new UpdateClienteRequest
+                {
+                    Nombre = _model.Nombre,
+                    Cedula = _model.Cedula,
+                    NoTarjetaCr = _model.NoTarjetaCr,
+                    LimiteCredito = _model.LimiteCredito,
+                    TipoPersona = _model.TipoPersona
+                };
+                await ClienteService.UpdateAsync(Cliente!.Id, request);
+                Snackbar.Add("Cliente actualizado correctamente", Severity.Success);
+            }
+            else
+            {
+                await ClienteService.CreateAsync(_model);
+                Snackbar.Add("Cliente creado correctamente", Severity.Success);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al guardar: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

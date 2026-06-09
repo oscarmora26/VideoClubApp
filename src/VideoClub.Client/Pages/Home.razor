@@ -1,7 +1,37 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<MudText Typo="Typo.h5" Class="mb-4">Panel Principal</MudText>
 
-<h1>Hello, world!</h1>
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="1" Class="cursor-pointer" OnClick="@(() => Navigation.NavigateTo("clientes"))">
+            <MudCardContent>
+                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+                <MudText Typo="Typo.h6">Clientes</MudText>
+                <MudText Typo="Typo.body2">Gestión de clientes del videoclub</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="1" Class="cursor-pointer" OnClick="@(() => Navigation.NavigateTo("articulos"))">
+            <MudCardContent>
+                <MudIcon Icon="@Icons.Material.Filled.Movie" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+                <MudText Typo="Typo.h6">Artículos</MudText>
+                <MudText Typo="Typo.body2">Catálogo de artículos disponibles para renta</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="1" Class="cursor-pointer" OnClick="@(() => Navigation.NavigateTo("rentas"))">
+            <MudCardContent>
+                <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Large" Color="Color.Warning" Class="mb-2" />
+                <MudText Typo="Typo.h6">Rentas</MudText>
+                <MudText Typo="Typo.body2">Registro y gestión de rentas y devoluciones</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
 
-Welcome to your new app.
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+}

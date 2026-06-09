@@ -1,0 +1,200 @@
+@page "/articulos"
+@inject IArticuloService ArticuloService
+@inject ITipoArticuloService TipoArticuloService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="mb-3">Artículos</MudText>
+
+ <MudPaper Class="pa-4 mb-4">
+    <div Class="d-flex align-end gap-4 flex-wrap">
+        <div Class="flex-grow-1" Style="min-width: 200px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Buscar</MudText>
+            <MudTextField @bind-Value="_searchTerm"
+                          @bind-Value:after="LoadData"
+                          DebounceInterval="300"
+                          Immediate="true"
+                          Placeholder="Título..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                          Dense="true"
+                          Class="w-100" />
+        </div>
+        <div Style="min-width: 160px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Tipo Artículo</MudText>
+            <MudSelect @bind-Value="_tipoFilter"
+                       @bind-Value:after="LoadData"
+                       Variant="Variant.Outlined"
+                       Dense="true"
+                       Class="w-100">
+                <MudSelectItem T="string" Value="null">Todos</MudSelectItem>
+                @foreach (var tipo in _tiposArticulos)
+                {
+                    <MudSelectItem T="string" Value="@tipo.Id.ToString()">@tipo.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+        <div Style="min-width: 120px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Estado</MudText>
+            <MudSelect @bind-Value="_estadoFilter"
+                       @bind-Value:after="LoadData"
+                       Variant="Variant.Outlined"
+                       Dense="true"
+                       Class="w-100">
+                <MudSelectItem T="string" Value="null">Todos</MudSelectItem>
+                <MudSelectItem T="string" Value="@("true")">Activo</MudSelectItem>
+                <MudSelectItem T="string" Value="@("false")">Inactivo</MudSelectItem>
+            </MudSelect>
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                    Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    style="height: 60px;"
+                    OnClick="async () => await OpenForm(null)">
+            Nuevo Artículo
+        </MudButton>
+    </div>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mx-auto my-8" />
+}
+else
+{
+    <MudTable Items="@_articulos"
+              Hover="true"
+              Dense="true"
+              Breakpoint="Breakpoint.Sm"
+              Striped="true"
+              Elevation="1"
+              Class="mud-table-sticky-header">
+        <HeaderContent>
+            <MudTh>Título</MudTh>
+            <MudTh>Tipo</MudTh>
+            <MudTh>Género</MudTh>
+            <MudTh>Idioma</MudTh>
+            <MudTh>Renta/Día</MudTh>
+            <MudTh>Días</MudTh>
+            <MudTh>Stock</MudTh>
+            <MudTh>Estado</MudTh>
+            <MudTh>Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Título">@context.Titulo</MudTd>
+            <MudTd DataLabel="Tipo">@context.TipoArticuloDescripcion</MudTd>
+            <MudTd DataLabel="Género">@context.GeneroDescripcion</MudTd>
+            <MudTd DataLabel="Idioma">@context.IdiomaDescripcion</MudTd>
+            <MudTd DataLabel="Renta/Día">@context.RentaPorDia.ToString("N2")</MudTd>
+            <MudTd DataLabel="Días">@context.DiasRenta</MudTd>
+            <MudTd DataLabel="Stock">@context.Stock</MudTd>
+            <MudTd DataLabel="Estado">
+                <MudChip T="string" Size="Size.Small" Color="@(context.Estado ? Color.Success : Color.Error)" Class="mud-chip-pill">
+                    @(context.Estado ? "Activo" : "Inactivo")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Acciones">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               Title="Editar" 
+                               OnClick="async () => await OpenForm(context)" />
+                <MudIconButton Icon="@(context.Estado ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
+                               Size="Size.Small"
+                               Color="@(context.Estado ? Color.Error : Color.Success)"
+                               Title="@(context.Estado ? "Desactivar" : "Activar")"
+                               OnClick="async () => await ToggleEstado(context)" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="[10, 25, 50]" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<ArticuloDto> _articulos = [];
+    private List<TipoArticuloDto> _tiposArticulos = [];
+    private string _searchTerm = "";
+    private string? _tipoFilter;
+    private string? _estadoFilter;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _tiposArticulos = await TipoArticuloService.GetAllAsync();
+        }
+        catch { }
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            long? tipoId = long.TryParse(_tipoFilter, out var t) ? t : null;
+            bool? estado = _estadoFilter switch
+            {
+                "true" => true,
+                "false" => false,
+                _ => null
+            };
+            _articulos = await ArticuloService.GetAllAsync(_searchTerm, tipoId, estado);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar artículos: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenForm(ArticuloDto? articulo)
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var parameters = new DialogParameters { ["Articulo"] = articulo };
+        var dialog = await DialogService.ShowAsync<Form>("Artículo", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadData();
+    }
+
+    private async Task ToggleEstado(ArticuloDto articulo)
+    {
+        if (articulo.Estado)
+        {
+            var confirm = await DialogService.ShowMessageBoxAsync(
+                "Desactivar",
+                $"¿Desactivar '{articulo.Titulo}'? Este artículo no aparecerá disponible para nuevas rentas.",
+                yesText: "Desactivar",
+                cancelText: "Cancelar");
+
+            if (confirm != true) return;
+        }
+
+        try
+        {
+            var nuevoEstado = await ArticuloService.ToggleEstadoAsync(articulo.Id);
+            Snackbar.Add($"Artículo {(nuevoEstado ? "activado" : "desactivado")} correctamente", Severity.Success);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cambiar estado: {ex.Message}", Severity.Error);
+        }
+    }
+}

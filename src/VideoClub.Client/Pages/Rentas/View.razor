@@ -1,0 +1,150 @@
+@page "/rentas/{Id:long}"
+@inject IRentaService RentaService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="mb-3">Detalle de Renta</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mx-auto my-8" />
+}
+else if (_renta is null)
+{
+    <MudText Typo="Typo.body1" Color="Color.Error">Renta no encontrada</MudText>
+}
+else
+{
+    <MudPaper Elevation="1" Class="pa-3 mb-4">
+        <MudText Typo="Typo.subtitle1" Class="mb-2">Información General</MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">No. Renta</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.NoRenta</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Cliente</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.ClienteNombre</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Empleado</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.EmpleadoNombre</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Estado</MudText>
+                <MudChip T="string" Size="Size.Small"
+                         Color="@(_renta.EstadoRenta == "Activa" ? Color.Warning : Color.Success)"
+                         Variant="Variant.Filled" Class="mud-chip-pill">
+                    @_renta.EstadoRenta
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Fecha Renta</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.FechaRenta.ToString("dd/MM/yyyy HH:mm")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Fecha Dev. Esperada</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.FechaExpectedDevolucion?.ToString("dd/MM/yyyy")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Fecha Dev. Real</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.FechaDevolucionReal?.ToString("dd/MM/yyyy")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.body2" Class="vc-form-label">Monto Total</MudText>
+                <MudText Typo="Typo.body1" Class="mb-3">@_renta.MontoTotal?.ToString("N2")</MudText>
+            </MudItem>
+            @if (!string.IsNullOrEmpty(_renta.Comentario))
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="vc-form-label">Comentario</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@_renta.Comentario</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudPaper Elevation="1" Class="pa-3 mb-4">
+        <MudText Typo="Typo.subtitle1" Class="mb-2">Artículos Rentados</MudText>
+        <MudTable Items="@_renta.Detalles"
+                  Hover="true"
+                  Breakpoint="Breakpoint.Sm"
+                  Striped="true"
+                  Dense="true"
+                  Elevation="0">
+            <HeaderContent>
+                <MudTh>Artículo</MudTh>
+                <MudTh>Monto/Día</MudTh>
+                <MudTh>Días</MudTh>
+                <MudTh>Monto Total</MudTh>
+                <MudTh>Dev. Esperada</MudTh>
+                <MudTh>Dev. Real</MudTh>
+                <MudTh>Días Retraso</MudTh>
+                <MudTh>Monto Retraso</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Artículo">@context.ArticuloTitulo</MudTd>
+                <MudTd DataLabel="Monto/Día">@context.MontoPorDia.ToString("N2")</MudTd>
+                <MudTd DataLabel="Días">@context.CantidadDias</MudTd>
+                <MudTd DataLabel="Monto Total">@context.MontoTotal.ToString("N2")</MudTd>
+                <MudTd DataLabel="Dev. Esperada">@context.FechaDevolucionEsperada?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd DataLabel="Dev. Real">@context.FechaDevolucionReal?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd DataLabel="Días Retraso">@context.DiasRetraso</MudTd>
+                <MudTd DataLabel="Monto Retraso">@context.MontoRetraso.ToString("N2")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+
+    <div Class="d-flex justify-end gap-2">
+        @if (_renta.EstadoRenta == "Activa")
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.AssignmentReturn"
+                        OnClick="@(async () => Navigation.NavigateTo($"/rentas/{Id}/devolucion"))">
+                Registrar Devolución
+            </MudButton>
+        }
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="GoBack">
+            Volver
+        </MudButton>
+    </div>
+}
+
+@code {
+    [Parameter] public long Id { get; set; }
+
+    private RentaWithDetailsDto? _renta;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRenta();
+    }
+
+    private async Task LoadRenta()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _renta = await RentaService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar renta: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/rentas");
+    }
+}

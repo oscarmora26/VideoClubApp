@@ -1,0 +1,170 @@
+@page "/clientes"
+@inject IClienteService ClienteService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="mb-3">Clientes</MudText>
+
+ <MudPaper Class="pa-4 mb-4">
+    <div Class="d-flex align-end gap-4 flex-wrap">
+        <div Class="flex-grow-1" Style="min-width: 200px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Buscar</MudText>
+            <MudTextField @bind-Value="_searchTerm"
+                          @bind-Value:after="LoadData"
+                          DebounceInterval="400"
+                          Immediate="true"
+                          Placeholder="Nombre o cédula..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                          Dense="true"
+                          Class="w-100" />
+        </div>
+        <div Style="min-width: 140px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Estado</MudText>
+            <MudSelect @bind-Value="_estadoFilter"
+                       @bind-Value:after="LoadData"
+                       Variant="Variant.Outlined"
+                       Dense="true"
+                       Class="w-100">
+                <MudSelectItem T="string" Value="null">Todos</MudSelectItem>
+                <MudSelectItem T="string" Value="@("true")">Activo</MudSelectItem>
+                <MudSelectItem T="string" Value="@("false")">Inactivo</MudSelectItem>
+            </MudSelect>
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   style="height: 60px;"
+                   OnClick="async () => await OpenForm(null)">
+            Nuevo Cliente
+        </MudButton>
+    </div>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mx-auto my-8" />
+}
+else
+{
+    <MudTable Items="@_clientes"
+              Hover="true"
+              Dense="true"
+              Breakpoint="Breakpoint.Sm"
+              Striped="true"
+              Elevation="1"
+              Class="mud-table-sticky-header">
+        <HeaderContent>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Cédula</MudTh>
+            <MudTh>Tipo Persona</MudTh>
+            <MudTh>Límite Crédito</MudTh>
+            <MudTh>Estado</MudTh>
+            <MudTh>Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+            <MudTd DataLabel="Cédula">@context.Cedula</MudTd>
+            <MudTd DataLabel="Tipo Persona">@context.TipoPersona</MudTd>
+            <MudTd DataLabel="Límite Crédito">@context.LimiteCredito.ToString("N2")</MudTd>
+            <MudTd DataLabel="Estado">
+                <MudChip T="string" Size="Size.Small" Color="@(context.Estado ? Color.Success : Color.Error)" Class="mud-chip-pill">
+                    @(context.Estado ? "Activo" : "Inactivo")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Acciones">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               Title="Editar" OnClick="async () => await OpenForm(context)" />
+                <MudIconButton Icon="@(context.Estado ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
+                               Size="Size.Small"
+                               Color="@(context.Estado ? Color.Error : Color.Success)"
+                               Title="@(context.Estado ? "Desactivar" : "Activar")"
+                               OnClick="async () => await ToggleEstado(context)" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="[10, 25, 50]" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<ClienteDto> _clientes = [];
+    private string _searchTerm = "";
+    private string? _estadoFilter;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            bool? estado = _estadoFilter switch
+            {
+                "true" => true,
+                "false" => false,
+                _ => null
+            };
+            _clientes = await ClienteService.GetAllAsync(_searchTerm, estado);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar clientes: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenForm(ClienteDto? cliente)
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var parameters = new DialogParameters { ["Cliente"] = cliente };
+        var dialog = await DialogService.ShowAsync<Form>("Cliente", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadData();
+    }
+
+    private async Task ToggleEstado(ClienteDto cliente)
+    {
+        if (cliente.Estado)
+        {
+            var confirm = await DialogService.ShowMessageBoxAsync(
+                "Desactivar",
+                $"¿Desactivar a {cliente.Nombre}? Este cliente no podrá realizar nuevas rentas.",
+                yesText: "Desactivar",
+                cancelText: "Cancelar");
+
+            if (confirm != true) return;
+        }
+
+        try
+        {
+            var nuevoEstado = await ClienteService.ToggleEstadoAsync(cliente.Id);
+            Snackbar.Add($"Cliente {(nuevoEstado ? "activado" : "desactivado")} correctamente", Severity.Success);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cambiar estado: {ex.Message}", Severity.Error);
+        }
+    }
+}

@@ -7,8 +7,8 @@
         "npx",
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://videoclub:videoclub123@localhost:5432/videoclub",
-      ],
-    },
-  },
+        "postgresql://videoclub:videoclub123@localhost:5432/videoclub"
+      ]
+    }
+  }
 }

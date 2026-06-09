@@ -1,0 +1,148 @@
+@page "/rentas"
+@inject IRentaService RentaService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudText Typo="Typo.h5" Class="mb-3">Rentas</MudText>
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <div Class="d-flex align-end gap-4 flex-wrap">
+        <div Class="flex-grow-1" Style="min-width: 200px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Buscar</MudText>
+            <MudTextField @bind-Value="_searchTerm"
+                          @bind-Value:after="LoadData"
+                          DebounceInterval="300"
+                          Immediate="true"
+                          Placeholder="No. Renta o cliente..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                          Dense="true"
+                          Class="w-100" />
+        </div>
+        <div Style="min-width: 120px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Estado</MudText>
+            <MudSelect @bind-Value="_estadoFilter"
+                       @bind-Value:after="LoadData"
+                       Variant="Variant.Outlined"
+                       Dense="true"
+                       Class="w-100">
+                <MudSelectItem T="string" Value="null">Todos</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Activa")">Activa</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Devuelta")">Devuelta</MudSelectItem>
+            </MudSelect>
+        </div>
+        <div Style="min-width: 140px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Desde</MudText>
+            <MudDatePicker @bind-Value="_desdeFilter"
+                           @bind-Value:after="LoadData"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           Class="w-100" />
+        </div>
+        <div Style="min-width: 140px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Hasta</MudText>
+            <MudDatePicker @bind-Value="_hastaFilter"
+                           @bind-Value:after="LoadData"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           Class="w-100" />
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                    Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    style="height: 60px;"
+                    Href="rentas/nueva">
+            Nueva Renta
+        </MudButton>
+    </div>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mx-auto my-8" />
+}
+else
+{
+    <MudTable Items="@_rentas"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              Striped="true"
+              Dense="true"
+              Elevation="1"
+              Class="mud-table-sticky-header">
+        <HeaderContent>
+            <MudTh>No. Renta</MudTh>
+            <MudTh>Cliente</MudTh>
+            <MudTh>Empleado</MudTh>
+            <MudTh>Fecha Renta</MudTh>
+            <MudTh>Fecha Devolución</MudTh>
+            <MudTh>Monto Total</MudTh>
+            <MudTh>Estado</MudTh>
+            <MudTh>Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="No. Renta">@context.NoRenta</MudTd>
+            <MudTd DataLabel="Cliente">@context.ClienteNombre</MudTd>
+            <MudTd DataLabel="Empleado">@context.EmpleadoNombre</MudTd>
+            <MudTd DataLabel="Fecha Renta">@context.FechaRenta.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd DataLabel="Fecha Devolución">@context.FechaExpectedDevolucion?.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd DataLabel="Monto Total">@context.MontoTotal?.ToString("N2")</MudTd>
+            <MudTd DataLabel="Estado">
+                <MudChip T="string" Size="Size.Small"
+                         Color="@(context.EstadoRenta == "Activa" ? Color.Warning : Color.Success)"
+                         Variant="Variant.Filled" Class="mud-chip-pill">
+                    @context.EstadoRenta
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Acciones">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small"
+                               Title="Ver" OnClick="@(async () => Navigation.NavigateTo($"/rentas/{context.Id}"))" />
+                @if (context.EstadoRenta == "Activa")
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.AssignmentReturn" Size="Size.Small"
+                                   Color="Color.Warning"
+                                   Title="Devolver"
+                                   OnClick="@(async () => Navigation.NavigateTo($"/rentas/{context.Id}/devolucion"))" />
+                }
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="[10, 25, 50]" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<RentaDto> _rentas = [];
+    private string _searchTerm = "";
+    private string? _estadoFilter;
+    private DateTime? _desdeFilter;
+    private DateTime? _hastaFilter;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _rentas = await RentaService.GetAllAsync(_searchTerm, _estadoFilter, _desdeFilter, _hastaFilter);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar rentas: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+}

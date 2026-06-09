@@ -79,6 +79,43 @@ dotnet ef database update --project .\src\VideoClub.Api
 - No test projects exist yet.
 - No CI/CD, no pre-commit hooks, no lint/formatter config beyond .NET defaults.
 
+## Design System (Google Stitch — Systematic Professional)
+
+### Tema MudBlazor
+MudThemeProvider configurado con `MudTheme`:
+- Primary:   `#402bca`
+- Secondary: `#b70052`
+- Error:     `#ba1a1a`
+- Background:`#fcf8ff`
+- Surface:   `#ffffff`
+- Font:      Inter (importar en index.html)
+- Border radius global: `8px` via `MudTheme.Shape`
+
+### Reglas visuales globales
+- Botones: sentence case via `MudGlobal.ButtonDefaults.ForceUppercase = false` en Program.cs
+- Botón primario:   `Variant="Filled"   Color="Primary"`
+- Botón secundario: `Variant="Outlined" Color="Secondary"`
+- Labels de inputs siempre **encima** del campo (no flotantes): usar `<MudText>` separado + MudTextField sin `Label`
+- Elevation: MudPaper `Elevation="1"`, Dialogs `Elevation="8"`
+
+### Tablas / DataGrids
+- Zebra striping con fila alterna `#FAFAFB` via CSS
+- Headers sticky
+- `Dense=true` en todas las vistas de datos
+- Búsqueda posicionada arriba a la derecha
+
+### Chips de estado
+| Estado | Color | Variant |
+|---|---|---|
+| Activo / Devuelta | Success | Filled |
+| Activa (renta) | Warning | Filled |
+| Inactivo | Error | Filled |
+- Todos con `border-radius: 999px` (pill shape) via CSS global
+
+### Navegación
+- MudDrawer `Variant="Permanent"`, ancho `240px`
+- Item activo: fondo `rgba(64, 43, 202, 0.1)` + borde izquierdo `3px solid #402bca` via CSS
+
 ## Installed skills (`.agents/skills/`)
 
 - `blazor-expert` — Blazor/MudBlazor conventions
