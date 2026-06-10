@@ -28,16 +28,20 @@ RUN dotnet publish "VideoClub.Client.csproj" \
 FROM nginx:alpine AS final
 WORKDIR /usr/share/nginx/html
 
+ENV API_URL=http://localhost:5144
+
 # Limpiar contenido default de Nginx
 RUN rm -rf ./*
 
 # Copiar los archivos publicados de Blazor WASM
 COPY --from=build /app/publish/wwwroot .
 
+# Copiar entrypoint para sustituir variables de entorno en appsettings.json y nginx.conf
+COPY src/VideoClub.Client/docker-entrypoint.d/40-appsettings.sh /docker-entrypoint.d/40-appsettings.sh
+RUN chmod +x /docker-entrypoint.d/40-appsettings.sh
+
 # Copiar configuración personalizada de Nginx
 COPY src/VideoClub.Client/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
-
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
 

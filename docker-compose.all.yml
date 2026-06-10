@@ -37,6 +37,7 @@ services:
     ports:
       - "5294:80"
     environment:
+      - API_URL=http://localhost:5144
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - api

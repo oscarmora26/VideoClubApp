@@ -41,7 +41,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:7115")
+        policy.WithOrigins("https://localhost:7115", "http://localhost:5294")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -59,8 +59,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseOpenApiUi(config => config.OpenApiSpecPath = "/openapi/v1.json");
 }
-
-app.UseHttpsRedirection();
 
 app.MapGroup("/api/articulos")
     .MapArticuloEndpoints();
