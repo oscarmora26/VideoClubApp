@@ -8,6 +8,7 @@ services:
       - "5144:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      AllowedOrigins: https://localhost:7115;http://localhost:5294
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=videoclub;Username=videoclub;Password=videoclub123"
     depends_on:
       postgres:
