@@ -14,5 +14,7 @@ public class CreateEmpleadoValidator : AbstractValidator<CreateEmpleadoCommand>
         RuleFor(x => x.FechaIngreso).NotEmpty();
         RuleFor(x => x.NombreUsuario).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6);
+        RuleFor(x => x.Rol).NotEmpty().Must(r => r is "Administrador" or "Empleado")
+            .WithMessage("El rol debe ser 'Administrador' o 'Empleado'");
     }
 }

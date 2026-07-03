@@ -12,6 +12,7 @@ public class Empleado : AuditableEntity
     public DateOnly FechaIngreso { get; set; }
     public string NombreUsuario { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+    public string Rol { get; set; } = "Empleado";
 
     public ICollection<Renta> Rentas { get; set; } = new List<Renta>();
 }

@@ -31,7 +31,8 @@ public class CreateEmpleadoHandler : IRequestHandler<CreateEmpleadoCommand, Resu
             PorcientoComision = request.PorcientoComision,
             FechaIngreso = request.FechaIngreso,
             NombreUsuario = request.NombreUsuario,
-            PasswordHash = request.Password
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Rol = request.Rol
         };
 
         _db.Empleados.Add(entity);

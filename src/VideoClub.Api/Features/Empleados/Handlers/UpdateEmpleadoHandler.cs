@@ -33,7 +33,7 @@ public class UpdateEmpleadoHandler : IRequestHandler<UpdateEmpleadoCommand, Resu
         entity.PorcientoComision = request.PorcientoComision;
         entity.FechaIngreso = request.FechaIngreso;
         entity.NombreUsuario = request.NombreUsuario;
-        entity.PasswordHash = request.Password;
+        entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         await _db.SaveChangesAsync(ct);
 

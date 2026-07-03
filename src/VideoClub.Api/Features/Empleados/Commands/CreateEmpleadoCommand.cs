@@ -12,5 +12,6 @@ public record CreateEmpleadoCommand(
     decimal PorcientoComision,
     DateOnly FechaIngreso,
     string NombreUsuario,
-    string Password
+    string Password,
+    string Rol
 ) : IRequest<Result<EmpleadoDto>>;

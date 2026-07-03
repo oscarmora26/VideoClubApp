@@ -1,0 +1,13 @@
+using FluentValidation;
+using VideoClub.Api.Features.Auth.Commands;
+
+namespace VideoClub.Api.Features.Auth.Validators;
+
+public class LoginValidator : AbstractValidator<LoginCommand>
+{
+    public LoginValidator()
+    {
+        RuleFor(x => x.NombreUsuario).NotEmpty().WithMessage("El usuario es requerido");
+        RuleFor(x => x.Password).NotEmpty().WithMessage("La contraseña es requerida");
+    }
+}

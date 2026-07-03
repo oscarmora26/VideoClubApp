@@ -11,4 +11,5 @@ public record EmpleadoDto
     public decimal PorcientoComision { get; init; }
     public DateOnly FechaIngreso { get; init; }
     public string NombreUsuario { get; init; } = string.Empty;
+    public string Rol { get; init; } = string.Empty;
 }

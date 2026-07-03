@@ -131,8 +131,8 @@ public static class SeedData
         logger.LogInformation("Relaciones elenco-artículo insertadas.");
 
         // Empleados
-        var jperez = new Empleado { Nombre = "Juan Pérez", Cedula = "001-0000001-1", TandaLabor = TandaLabor.Matutina, PorcientoComision = 10m, FechaIngreso = new DateOnly(2024, 1, 15), NombreUsuario = "jperez", PasswordHash = "123456" };
-        var mgarcia = new Empleado { Nombre = "María García", Cedula = "001-0000002-2", TandaLabor = TandaLabor.Vespertina, PorcientoComision = 12m, FechaIngreso = new DateOnly(2024, 3, 1), NombreUsuario = "mgarcia", PasswordHash = "123456" };
+        var jperez = new Empleado { Nombre = "Juan Pérez", Cedula = "001-0000001-1", TandaLabor = TandaLabor.Matutina, PorcientoComision = 10m, FechaIngreso = new DateOnly(2024, 1, 15), NombreUsuario = "jperez", PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"), Rol = "Administrador" };
+        var mgarcia = new Empleado { Nombre = "María García", Cedula = "001-0000002-2", TandaLabor = TandaLabor.Vespertina, PorcientoComision = 12m, FechaIngreso = new DateOnly(2024, 3, 1), NombreUsuario = "mgarcia", PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"), Rol = "Empleado" };
         db.Empleados.AddRange(jperez, mgarcia);
 
         await db.SaveChangesAsync();
@@ -191,4 +191,5 @@ public static class SeedData
         db.Rentas.AddRange(renta1, renta2);
         await db.SaveChangesAsync();
     }
+
 }
