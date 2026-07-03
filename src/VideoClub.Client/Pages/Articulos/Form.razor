@@ -2,7 +2,7 @@
 @inject ITipoArticuloService TipoArticuloService
 @inject IIdiomaService IdiomaService
 @inject IElencoService ElencoService
-@inject HttpClient Http
+@inject IRolElencoService RolElencoService
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -172,7 +172,7 @@
         {
             _tiposArticulos = await TipoArticuloService.GetAllAsync();
             _idiomas = await IdiomaService.GetAllAsync();
-            _rolesElenco = await Http.GetFromJsonAsync<List<RolElencoDto>>("api/roles-elenco") ?? [];
+            _rolesElenco = await RolElencoService.GetAllAsync();
             _elencoCache = await ElencoService.GetAllAsync();
         }
         catch { }
@@ -233,9 +233,9 @@
         var rol = _rolesElenco.FirstOrDefault(r => r.Id == _newElencoRolId);
         if (rol is null) return;
 
-        if (_elencoItems.Any(e => e.ElencoId == _newElencoElenco.Id))
+        if (_elencoItems.Any(e => e.ElencoId == _newElencoElenco.Id && e.RolElencoId == rol.Id))
         {
-            Snackbar.Add("Esta persona ya está en el elenco", Severity.Warning);
+            Snackbar.Add("Esta persona ya tiene este rol asignado", Severity.Warning);
             return;
         }
 
@@ -277,12 +277,16 @@
                 var existingElenco = await ArticuloService.GetElencoAsync(Articulo.Id);
                 var toRemove = existingElenco.Where(e => !_elencoItems.Any(n => n.ElencoId == e.ElencoId)).ToList();
                 var toAdd = _elencoItems.Where(n => !existingElenco.Any(e => e.ElencoId == n.ElencoId)).ToList();
+                var toUpdate = _elencoItems.Where(n => existingElenco.Any(e => e.ElencoId == n.ElencoId && e.RolElencoId != n.RolElencoId)).ToList();
 
                 foreach (var item in toRemove)
                     await ArticuloService.RemoveElencoAsync(Articulo.Id, item.ElencoId);
 
                 foreach (var item in toAdd)
                     await ArticuloService.AddElencoAsync(Articulo.Id, new AddElencoToArticuloRequest { ElencoId = item.ElencoId, RolElencoId = item.RolElencoId });
+
+                foreach (var item in toUpdate)
+                    await ArticuloService.UpdateElencoAsync(Articulo.Id, item.ElencoId, new UpdateArticuloElencoRequest { RolElencoId = item.RolElencoId });
 
                 Snackbar.Add("Artículo actualizado correctamente", Severity.Success);
             }

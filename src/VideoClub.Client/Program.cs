@@ -22,6 +22,7 @@ builder.Services.AddScoped<IRentaService, RentaService>();
 builder.Services.AddScoped<ITipoArticuloService, TipoArticuloService>();
 builder.Services.AddScoped<IIdiomaService, IdiomaService>();
 builder.Services.AddScoped<IElencoService, ElencoService>();
+builder.Services.AddScoped<IRolElencoService, RolElencoService>();
 builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
 
 await builder.Build().RunAsync();
