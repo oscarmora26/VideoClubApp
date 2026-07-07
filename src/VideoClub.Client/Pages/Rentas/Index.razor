@@ -35,16 +35,16 @@
         </div>
         <div Style="min-width: 140px">
             <MudText Typo="Typo.body2" Class="vc-form-label">Desde</MudText>
-            <MudDatePicker @bind-Value="_desdeFilter"
-                           @bind-Value:after="LoadData"
+            <MudDatePicker Date="_desdeFilter"
+                           DateChanged="OnDesdeChanged"
                            Variant="Variant.Outlined"
                            Dense="true"
                            Class="w-100" />
         </div>
         <div Style="min-width: 140px">
             <MudText Typo="Typo.body2" Class="vc-form-label">Hasta</MudText>
-            <MudDatePicker @bind-Value="_hastaFilter"
-                           @bind-Value:after="LoadData"
+            <MudDatePicker Date="_hastaFilter"
+                           DateChanged="OnHastaChanged"
                            Variant="Variant.Outlined"
                            Dense="true"
                            Class="w-100" />
@@ -124,6 +124,18 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task OnDesdeChanged(DateTime? value)
+    {
+        _desdeFilter = value;
+        await LoadData();
+    }
+
+    private async Task OnHastaChanged(DateTime? value)
+    {
+        _hastaFilter = value;
         await LoadData();
     }
 

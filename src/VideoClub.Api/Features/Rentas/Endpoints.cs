@@ -10,15 +10,15 @@ public static class Endpoints
 {
     public static RouteGroupBuilder MapRentaEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (IMediator mediator) =>
+        group.MapGet("/", async (string? search, string? estado, DateTime? desde, DateTime? hasta, IMediator mediator) =>
         {
-            var result = await mediator.Send(new GetAllRentasQuery());
+            var result = await mediator.Send(new GetAllRentasQuery(search, estado, desde, hasta));
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
         }).WithName("GetAllRentas")
           .WithSummary("Lista todas las rentas")
-          .WithDescription("Obtener todas las rentas")
+          .WithDescription("Obtener todas las rentas con filtros opcionales")
           .Produces<List<RentaDto>>(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status500InternalServerError);
 

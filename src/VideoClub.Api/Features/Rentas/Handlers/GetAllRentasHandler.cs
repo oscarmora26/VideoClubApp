@@ -22,7 +22,27 @@ public class GetAllRentasHandler : IRequestHandler<GetAllRentasQuery, Result<Lis
 
     public async Task<Result<List<RentaDto>>> Handle(GetAllRentasQuery request, CancellationToken ct)
     {
-        var dtos = await _db.Rentas
+        var query = _db.Rentas.AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.Search))
+            query = query.Where(r => r.NoRenta.Contains(request.Search) || r.Cliente.Nombre.Contains(request.Search));
+
+        if (!string.IsNullOrEmpty(request.Estado))
+            query = query.Where(r => r.EstadoRenta == request.Estado);
+
+        if (request.Desde.HasValue)
+        {
+            var desde = DateTime.SpecifyKind(request.Desde.Value, DateTimeKind.Utc);
+            query = query.Where(r => r.FechaRenta >= desde);
+        }
+
+        if (request.Hasta.HasValue)
+        {
+            var hasta = DateTime.SpecifyKind(request.Hasta.Value.AddDays(1), DateTimeKind.Utc);
+            query = query.Where(r => r.FechaRenta < hasta);
+        }
+
+        var dtos = await query
             .OrderByDescending(r => r.FechaRenta)
             .ProjectTo<RentaDto>(_mapper.ConfigurationProvider)
             .ToListAsync(ct);
