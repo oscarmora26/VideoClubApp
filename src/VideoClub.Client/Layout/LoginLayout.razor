@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+<MudThemeProvider Theme="_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+@Body
+
+@code {
+    private MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#402bca",
+            Secondary = "#b70052",
+            Error = "#ba1a1a",
+            Background = "#fcf8ff",
+            Surface = "#ffffff"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = new[] { "Inter", "Helvetica Neue", "sans-serif" } }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "8px"
+        }
+    };
+}

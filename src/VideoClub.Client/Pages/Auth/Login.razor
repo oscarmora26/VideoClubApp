@@ -1,0 +1,115 @@
+@page "/login"
+@layout LoginLayout
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
+
+<div Class="d-flex align-center justify-center" Style="height: 100vh; width: 100%;">
+    <MudPaper Elevation="1" Class="pa-8" Style="width: 100%; max-width: 400px; border-radius: 12px;">
+        <div class="d-flex flex-column align-center text-center mb-6">
+            <MudPaper Elevation="1" Class="d-flex align-center justify-center rounded-xl mb-4"
+                      Style="width: 64px; height: 64px; background-color: var(--mud-palette-primary);">
+                <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Style="color: white; font-size: 32px;" />
+            </MudPaper>
+            <MudText Typo="Typo.h5" Color="Color.Primary">VideoClub</MudText>
+        </div>
+
+        <MudForm @ref="_form">
+            <div class="mb-4">
+                <MudText Typo="Typo.body2" Class="mb-1 mud-text-secondary">Usuario</MudText>
+                <MudTextField @bind-Value="_nombreUsuario"
+                              Placeholder="Nombre de usuario"
+                              Required="true"
+                              RequiredError="El usuario es requerido"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              FullWidth="true" />
+            </div>
+
+            <div class="mb-6">
+                <div class="d-flex justify-space-between align-center mb-1">
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Contraseña</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary" Style="cursor: pointer;">
+                        ¿Olvidó su contraseña?
+                    </MudText>
+                </div>
+                <MudTextField @bind-Value="_password"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Placeholder="••••••••"
+                              Required="true"
+                              RequiredError="La contraseña es requerida"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock"
+                              AdornmentEnd="true"
+                              EndAdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                              OnAdornmentClick="@TogglePasswordVisibility"
+                              FullWidth="true" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4" Dense>@_error</MudAlert>
+            }
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       FullWidth="true" Size="Size.Large"
+                       OnClick="@LoginAsync"
+                       Disabled="@_loading"
+                       Class="py-3"
+                       EndIcon="@Icons.Material.Filled.ArrowForward">
+                @if (_loading)
+                {
+                    <MudProgressCircular Size="Size.Small" Class="mr-1" Color="Color.Inherit" />
+                }
+                Iniciar Sesión
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</div>
+
+@code {
+    private MudForm _form = null!;
+    private string _nombreUsuario = "";
+    private string _password = "";
+    private bool _showPassword;
+    private string? _error;
+    private bool _loading;
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+    }
+
+    private async Task LoginAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(_nombreUsuario, _password);
+            if (result is not null)
+            {
+                AuthStateProvider.NotifyStateChanged();
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _error = "Usuario o contraseña incorrectos";
+            }
+        }
+        catch
+        {
+            _error = "Error al conectar con el servidor";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
