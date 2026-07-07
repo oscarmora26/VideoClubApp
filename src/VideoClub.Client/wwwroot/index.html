@@ -16,11 +16,16 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="branded-loading">
+            <div class="branded-loading-icon">
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <rect width="56" height="56" rx="12" fill="#402bca"/>
+                    <path d="M18 20h20v4H22v6h14v4H22v6h16v4H18V20z" fill="white"/>
+                </svg>
+            </div>
+            <div class="branded-loading-spinner"></div>
+            <div class="branded-loading-text">VideoClub</div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
