@@ -111,15 +111,15 @@ public static class Endpoints
           .Produces<ElencoArticuloDto>(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{articuloId:long}/elenco/{elencoId:long}", async (long articuloId, long elencoId, IMediator mediator) =>
+        group.MapDelete("/{articuloId:long}/elenco/{elencoId:long}/{rolElencoId:long}", async (long articuloId, long elencoId, long rolElencoId, IMediator mediator) =>
         {
-            var result = await mediator.Send(new RemoveElencoFromArticuloCommand(articuloId, elencoId));
+            var result = await mediator.Send(new RemoveElencoFromArticuloCommand { ArticuloId = articuloId, ElencoId = elencoId, RolElencoId = rolElencoId });
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.NotFound(new { error = result.Error });
         }).WithName("RemoveElencoFromArticulo")
           .WithSummary("Desasigna un elenco de un artículo")
-          .WithDescription("Eliminar un elenco de un artículo (todos sus roles)")
+          .WithDescription("Eliminar un rol específico de un elenco en un artículo")
           .Produces(StatusCodes.Status204NoContent)
           .ProducesProblem(StatusCodes.Status404NotFound);
 

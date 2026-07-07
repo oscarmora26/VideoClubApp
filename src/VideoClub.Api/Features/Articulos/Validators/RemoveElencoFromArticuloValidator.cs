@@ -9,5 +9,6 @@ public class RemoveElencoFromArticuloValidator : AbstractValidator<RemoveElencoF
     {
         RuleFor(x => x.ArticuloId).GreaterThan(0);
         RuleFor(x => x.ElencoId).GreaterThan(0);
+        RuleFor(x => x.RolElencoId).GreaterThan(0);
     }
 }

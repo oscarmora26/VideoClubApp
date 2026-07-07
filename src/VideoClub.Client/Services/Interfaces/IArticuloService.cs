@@ -13,5 +13,5 @@ public interface IArticuloService
     Task<List<ElencoArticuloDto>> GetElencoAsync(long articuloId);
     Task<ElencoArticuloDto?> AddElencoAsync(long articuloId, AddElencoToArticuloRequest request);
     Task<ElencoArticuloDto?> UpdateElencoAsync(long articuloId, long elencoId, UpdateArticuloElencoRequest request);
-    Task<bool> RemoveElencoAsync(long articuloId, long elencoId);
+    Task<bool> RemoveElencoAsync(long articuloId, long elencoId, long rolElencoId);
 }

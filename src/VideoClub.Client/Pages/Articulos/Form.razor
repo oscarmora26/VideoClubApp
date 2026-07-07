@@ -117,11 +117,12 @@
                     </MudItem>
                     <MudItem xs="12" sm="5">
                         <MudSelect @bind-Value="_newElencoRolId"
+                                   Placeholder="Rol"
                                    Variant="Variant.Outlined"
                                    Dense="true">
                             @foreach (var rol in _rolesElenco)
                             {
-                                <MudSelectItem Value="rol.Id">@rol.Descripcion</MudSelectItem>
+                                <MudSelectItem Value="@((long?)rol.Id)">@rol.Descripcion</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -129,7 +130,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.AddCircle"
                                        Color="Color.Primary"
                                        Title="Agregar"
-                                       Disabled="@(_newElencoElenco is null || _newElencoRolId <= 0)"
+                                        Disabled="@(_newElencoElenco is null || _newElencoRolId is null or <= 0)"
                                        OnClick="@AddElencoItem" />
                     </MudItem>
                 </MudGrid>
@@ -163,7 +164,7 @@
     private List<ElencoArticuloDto> _elencoItems = [];
     private List<RolElencoDto> _rolesElenco = [];
     private ElencoDto? _newElencoElenco;
-    private long _newElencoRolId;
+    private long? _newElencoRolId;
     private List<ElencoDto> _elencoCache = [];
 
     protected override async Task OnInitializedAsync()
@@ -248,7 +249,7 @@
         });
 
         _newElencoElenco = null;
-        _newElencoRolId = 0;
+        _newElencoRolId = null;
     }
 
     private async Task SaveAsync()
@@ -275,18 +276,14 @@
                 await ArticuloService.UpdateAsync(Articulo!.Id, request);
 
                 var existingElenco = await ArticuloService.GetElencoAsync(Articulo.Id);
-                var toRemove = existingElenco.Where(e => !_elencoItems.Any(n => n.ElencoId == e.ElencoId)).ToList();
-                var toAdd = _elencoItems.Where(n => !existingElenco.Any(e => e.ElencoId == n.ElencoId)).ToList();
-                var toUpdate = _elencoItems.Where(n => existingElenco.Any(e => e.ElencoId == n.ElencoId && e.RolElencoId != n.RolElencoId)).ToList();
+                var toRemove = existingElenco.Where(e => !_elencoItems.Any(n => n.ElencoId == e.ElencoId && n.RolElencoId == e.RolElencoId)).ToList();
+                var toAdd = _elencoItems.Where(n => !existingElenco.Any(e => e.ElencoId == n.ElencoId && e.RolElencoId == n.RolElencoId)).ToList();
 
                 foreach (var item in toRemove)
-                    await ArticuloService.RemoveElencoAsync(Articulo.Id, item.ElencoId);
+                    await ArticuloService.RemoveElencoAsync(Articulo.Id, item.ElencoId, item.RolElencoId);
 
                 foreach (var item in toAdd)
                     await ArticuloService.AddElencoAsync(Articulo.Id, new AddElencoToArticuloRequest { ElencoId = item.ElencoId, RolElencoId = item.RolElencoId });
-
-                foreach (var item in toUpdate)
-                    await ArticuloService.UpdateElencoAsync(Articulo.Id, item.ElencoId, new UpdateArticuloElencoRequest { RolElencoId = item.RolElencoId });
 
                 Snackbar.Add("Artículo actualizado correctamente", Severity.Success);
             }

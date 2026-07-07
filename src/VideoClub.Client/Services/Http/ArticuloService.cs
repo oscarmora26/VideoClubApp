@@ -63,9 +63,9 @@ public class ArticuloService : IArticuloService
         return await response.Content.ReadFromJsonAsync<ElencoArticuloDto>();
     }
 
-    public async Task<bool> RemoveElencoAsync(long articuloId, long elencoId)
+    public async Task<bool> RemoveElencoAsync(long articuloId, long elencoId, long rolElencoId)
     {
-        var response = await _http.DeleteAsync($"api/articulos/{articuloId}/elenco/{elencoId}");
+        var response = await _http.DeleteAsync($"api/articulos/{articuloId}/elenco/{elencoId}/{rolElencoId}");
         return response.IsSuccessStatusCode;
     }
 }

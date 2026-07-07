@@ -17,14 +17,15 @@ public class RemoveElencoFromArticuloHandler : IRequestHandler<RemoveElencoFromA
 
     public async Task<Result<bool>> Handle(RemoveElencoFromArticuloCommand request, CancellationToken ct)
     {
-        var entities = await _db.ElencosArticulos
-            .Where(ea => ea.ArticuloId == request.ArticuloId && ea.ElencoId == request.ElencoId)
-            .ToListAsync(ct);
+        var entity = await _db.ElencosArticulos.FirstOrDefaultAsync(ea =>
+            ea.ArticuloId == request.ArticuloId &&
+            ea.ElencoId == request.ElencoId &&
+            ea.RolElencoId == request.RolElencoId, ct);
 
-        if (entities.Count == 0)
-            return Result<bool>.Failure("El elenco no está asignado a este artículo.");
+        if (entity is null)
+            return Result<bool>.Failure("El elenco no está asignado a este artículo con ese rol.");
 
-        _db.ElencosArticulos.RemoveRange(entities);
+        _db.ElencosArticulos.Remove(entity);
         await _db.SaveChangesAsync(ct);
 
         return Result<bool>.Success(true);

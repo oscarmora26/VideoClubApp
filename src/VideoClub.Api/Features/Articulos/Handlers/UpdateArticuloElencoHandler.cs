@@ -25,11 +25,20 @@ public class UpdateArticuloElencoHandler : IRequestHandler<UpdateArticuloElencoC
         if (entity is null)
             return Result<ElencoArticuloDto>.Failure("El elenco no está asignado a este artículo.");
 
-        entity.RolElencoId = request.RolElencoId;
+        _db.ElencosArticulos.Remove(entity);
+
+        var newEntity = new Data.Entities.ElencoArticulo
+        {
+            ArticuloId = request.ArticuloId,
+            ElencoId = request.ElencoId,
+            RolElencoId = request.RolElencoId
+        };
+
+        _db.ElencosArticulos.Add(newEntity);
         await _db.SaveChangesAsync(ct);
 
         var dto = await _db.ElencosArticulos
-            .Where(ea => ea.ArticuloId == entity.ArticuloId && ea.ElencoId == entity.ElencoId)
+            .Where(ea => ea.ArticuloId == request.ArticuloId && ea.ElencoId == request.ElencoId && ea.RolElencoId == request.RolElencoId)
             .Select(ea => new ElencoArticuloDto
             {
                 ArticuloId = ea.ArticuloId,
