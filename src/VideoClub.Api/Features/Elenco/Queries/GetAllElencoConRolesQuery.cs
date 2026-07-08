@@ -4,4 +4,4 @@ using VideoClub.Shared.DTOs.Elenco;
 
 namespace VideoClub.Api.Features.Elenco.Queries;
 
-public record GetAllElencoQuery(string? Search = null) : IRequest<Result<List<ElencoDto>>>;
+public record GetAllElencoConRolesQuery(string? Search = null) : IRequest<Result<List<ElencoConRolesDto>>>;

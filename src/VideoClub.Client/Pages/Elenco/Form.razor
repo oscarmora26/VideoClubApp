@@ -1,0 +1,165 @@
+@inject IElencoService ElencoService
+@inject IRolElencoService RolElencoService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @if (Tipo == "Persona")
+            {
+                @(EditId.HasValue ? "Editar Persona" : "Nueva Persona")
+            }
+            else
+            {
+                @(EditId.HasValue ? "Editar Rol" : "Nuevo Rol")
+            }
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudText Typo="Typo.body2" Class="vc-form-label">
+                @(Tipo == "Persona" ? "Nombre" : "Descripción")
+            </MudText>
+            <MudTextField @bind-Value="_name"
+                          Required="true"
+                          RequiredError="El campo es requerido"
+                          Variant="Variant.Outlined" />
+
+            @if (Tipo == "Persona" && _allRoles.Count > 0)
+            {
+                <MudText Typo="Typo.body2" Class="vc-form-label mt-4">Roles</MudText>
+                <MudTextField @bind-Value="_roleSearch"
+                              @bind-Value:after="ApplyRoleFilter"
+                              Placeholder="Buscar rol..."
+                              Immediate="true"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Variant="Variant.Outlined"
+                              Dense="true"
+                              Class="mb-2" />
+                <MudPaper Elevation="0" Class="d-flex flex-wrap gap-1 pa-2" Style="border: 1px solid #e0e0e0; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                    @foreach (var rol in _filteredRoles)
+                    {
+                        var sel = _roleChecked.TryGetValue(rol.Id, out var v) && v;
+                        <MudChip @key="rol.Id" T="string"
+                                 Color="@(sel ? Color.Primary : Color.Default)"
+                                 Variant="@(sel ? Variant.Filled : Variant.Outlined)"
+                                 OnClick="@(_ => _roleChecked[rol.Id] = !_roleChecked[rol.Id])"
+                                 Size="Size.Small">
+                            @rol.Descripcion
+                        </MudChip>
+                    }
+                </MudPaper>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default"
+                    OnClick="() => MudDialog.Close(DialogResult.Cancel())">
+            Cancelar
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@SaveAsync"
+                   Disabled="@_saving"
+                   StartIcon="@(EditId.HasValue ? Icons.Material.Filled.Save : Icons.Material.Filled.Add)">
+            @(EditId.HasValue ? "Guardar" : "Crear")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string Tipo { get; set; } = "Persona";
+    [Parameter] public long? EditId { get; set; }
+    [Parameter] public string EditName { get; set; } = string.Empty;
+    [Parameter] public List<long> EditRoleIds { get; set; } = [];
+
+    private bool _saving;
+    private MudForm _form = null!;
+    private string _name = string.Empty;
+    private List<RolElencoDto> _allRoles = [];
+    private List<RolElencoDto> _filteredRoles = [];
+    private Dictionary<long, bool> _roleChecked = [];
+    private string _roleSearch = string.Empty;
+
+    private void ApplyRoleFilter()
+    {
+        var query = _allRoles.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(_roleSearch))
+            query = query.Where(r => r.Descripcion.Contains(_roleSearch, StringComparison.OrdinalIgnoreCase));
+        _filteredRoles = query.OrderBy(r => r.Descripcion).ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _name = EditName;
+        foreach (var id in EditRoleIds)
+            _roleChecked[id] = true;
+
+        if (Tipo == "Persona")
+        {
+            try
+            {
+                _allRoles = await RolElencoService.GetAllAsync();
+                foreach (var rol in _allRoles)
+                    _roleChecked.TryAdd(rol.Id, false);
+                ApplyRoleFilter();
+            }
+            catch
+            {
+                Snackbar.Add("Error al cargar roles", Severity.Error);
+            }
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            if (Tipo == "Persona")
+            {
+                var selectedIds = _roleChecked.Where(kv => kv.Value).Select(kv => kv.Key).ToList();
+
+                if (EditId.HasValue)
+                {
+                    await ElencoService.UpdateAsync(EditId.Value, new UpdateElencoRequest { Nombre = _name });
+                    await ElencoService.SetRolesAsync(EditId.Value, selectedIds);
+                    Snackbar.Add("Persona actualizada correctamente", Severity.Success);
+                }
+                else
+                {
+                    var persona = await ElencoService.CreateAsync(new CreateElencoRequest { Nombre = _name });
+                    if (persona is not null && selectedIds.Count > 0)
+                        await ElencoService.SetRolesAsync(persona.Id, selectedIds);
+                    Snackbar.Add("Persona creada correctamente", Severity.Success);
+                }
+            }
+            else
+            {
+                if (EditId.HasValue)
+                {
+                    await RolElencoService.UpdateAsync(EditId.Value, new UpdateRolElencoRequest { Descripcion = _name });
+                    Snackbar.Add("Rol actualizado correctamente", Severity.Success);
+                }
+                else
+                {
+                    await RolElencoService.CreateAsync(new CreateRolElencoRequest { Descripcion = _name });
+                    Snackbar.Add("Rol creado correctamente", Severity.Success);
+                }
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al guardar: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

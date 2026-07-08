@@ -115,7 +115,7 @@ app.MapGroup("/api/clientes")
 
 app.MapGroup("/api/elenco")
     .MapElencoEndpoints()
-    .RequireAuthorization();
+    .RequireAuthorization("AdminOnly");
 
 app.MapGroup("/api/empleados")
     .MapEmpleadoEndpoints()
@@ -139,7 +139,7 @@ app.MapGroup("/api/generos")
 
 app.MapGroup("/api/roles-elenco")
     .MapRolElencoEndpoints()
-    .RequireAuthorization();
+    .RequireAuthorization("AdminOnly");
 
 if (app.Environment.IsDevelopment())
     await app.SeedAsync();

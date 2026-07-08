@@ -21,7 +21,12 @@ public class GetAllElencoHandler : IRequestHandler<GetAllElencoQuery, Result<Lis
 
     public async Task<Result<List<ElencoDto>>> Handle(GetAllElencoQuery request, CancellationToken ct)
     {
-        var entities = await _db.Elenco.ToListAsync(ct);
+        var query = _db.Elenco.AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.Search))
+            query = query.Where(e => EF.Functions.ILike(e.Nombre, $"%{request.Search}%"));
+
+        var entities = await query.ToListAsync(ct);
         var dtos = _mapper.Map<List<ElencoDto>>(entities);
         return Result<List<ElencoDto>>.Success(dtos);
     }

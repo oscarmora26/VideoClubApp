@@ -12,6 +12,7 @@ public class AuthService : IAuthService
 
     private const string TokenKey = "auth_token";
     private const string UserKey = "auth_user";
+    private const string RoleKey = "auth_role";
 
     public AuthService(HttpClient http, IJSRuntime js)
     {
@@ -35,6 +36,7 @@ public class AuthService : IAuthService
         {
             await _js.InvokeVoidAsync("localStorage.setItem", TokenKey, result.Token);
             await _js.InvokeVoidAsync("localStorage.setItem", UserKey, result.Nombre);
+            await _js.InvokeVoidAsync("localStorage.setItem", RoleKey, result.Rol);
         }
         return result;
     }
@@ -43,6 +45,7 @@ public class AuthService : IAuthService
     {
         await _js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
         await _js.InvokeVoidAsync("localStorage.removeItem", UserKey);
+        await _js.InvokeVoidAsync("localStorage.removeItem", RoleKey);
     }
 
     public async Task<string?> GetTokenAsync() =>
@@ -50,4 +53,7 @@ public class AuthService : IAuthService
 
     public async Task<string?> GetCurrentUserAsync() =>
         await _js.InvokeAsync<string>("localStorage.getItem", UserKey);
+
+    public async Task<string?> GetCurrentUserRoleAsync() =>
+        await _js.InvokeAsync<string>("localStorage.getItem", RoleKey);
 }

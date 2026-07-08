@@ -11,16 +11,28 @@ public static class Endpoints
 {
     public static RouteGroupBuilder MapElencoEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (IMediator mediator) =>
+        group.MapGet("/", async (string? search, IMediator mediator) =>
         {
-            var result = await mediator.Send(new GetAllElencoQuery());
+            var result = await mediator.Send(new GetAllElencoQuery(search));
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
         }).WithName("GetAllElenco")
           .WithSummary("Lista todos los miembros del elenco")
-          .WithDescription("Obtener todos los miembros del elenco")
+          .WithDescription("Obtener todos los miembros del elenco, con búsqueda opcional por nombre")
           .Produces<List<ElencoDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapGet("/con-roles", async (string? search, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetAllElencoConRolesQuery(search));
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem(detail: result.Error, statusCode: 500);
+        }).WithName("GetAllElencoConRoles")
+          .WithSummary("Lista todos los miembros del elenco con sus roles")
+          .WithDescription("Obtener todos los miembros del elenco con los roles que han desempeñado")
+          .Produces<List<ElencoConRolesDto>>(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapGet("/{id:long}", async (long id, IMediator mediator) =>
@@ -83,6 +95,18 @@ public static class Endpoints
           .WithSummary("Obtiene los artículos de un elenco")
           .WithDescription("Obtener los artículos asociados a un elenco")
           .Produces<List<ElencoArticuloDto>>(StatusCodes.Status200OK)
+          .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPut("/{elencoId:long}/roles", async (long elencoId, SetElencoRolesRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new SetElencoRolesCommand { ElencoId = elencoId, RolElencoIds = request.RolElencoIds });
+            return result.IsSuccess
+                ? Results.NoContent()
+                : Results.NotFound(new { error = result.Error });
+        }).WithName("SetElencoRoles")
+          .WithSummary("Asigna roles a una persona")
+          .WithDescription("Establece los roles que una persona puede desempeñar")
+          .Produces(StatusCodes.Status204NoContent)
           .ProducesProblem(StatusCodes.Status404NotFound);
 
         return group.WithTags("Elenco");

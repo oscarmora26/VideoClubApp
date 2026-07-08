@@ -1,0 +1,169 @@
+@page "/elenco"
+@attribute [Authorize(Roles = "Administrador")]
+@inject IElencoService ElencoService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="mb-3">Elenco</MudText>
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <div Class="d-flex align-end gap-4 flex-wrap">
+        <div Class="flex-grow-1" Style="min-width: 200px">
+            <MudText Typo="Typo.body2" Class="vc-form-label">Buscar persona</MudText>
+            <MudTextField @bind-Value="_searchTerm"
+                          @bind-Value:after="LoadData"
+                          DebounceInterval="300"
+                          Immediate="true"
+                          Placeholder="Nombre..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                          Dense="true"
+                          Class="w-100" />
+        </div>
+        <MudButton Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    style="height: 60px;"
+                    OnClick="async () => await OpenForm(null)">
+            Nueva Persona
+        </MudButton>
+    </div>
+</MudPaper>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mx-auto my-8" />
+}
+else
+{
+    <MudTable Items="@_personas"
+              Hover="true"
+              Dense="true"
+              Breakpoint="Breakpoint.Sm"
+              Striped="true"
+              Elevation="1"
+              Class="mud-table-sticky-header">
+        <HeaderContent>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Roles</MudTh>
+            <MudTh>Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+            <MudTd DataLabel="Roles">
+                @if (context.Roles.Count == 0)
+                {
+                    <span Class="mud-text-secondary">Sin roles</span>
+                }
+                else
+                {
+                    <div Class="d-flex flex-wrap gap-1">
+                        @foreach (var rol in context.Roles)
+                        {
+                            <MudChip T="string" Size="Size.Small" Class="mud-chip-pill mud-theme-primary">
+                                @rol.Descripcion
+                            </MudChip>
+                        }
+                    </div>
+                }
+            </MudTd>
+            <MudTd DataLabel="Acciones">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               Title="Editar"
+                               OnClick="async () => await OpenForm(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                               Color="Color.Error"
+                               Title="Eliminar"
+                               OnClick="async () => await DeletePersona(context)" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="[10, 25, 50]" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<ElencoConRolesDto> _personas = [];
+    private string _searchTerm = "";
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _personas = await ElencoService.GetAllConRolesAsync(_searchTerm);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar personas: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenForm(ElencoConRolesDto? persona)
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["Tipo"] = "Persona",
+            ["EditId"] = persona?.Id,
+            ["EditName"] = persona?.Nombre ?? "",
+            ["EditRoleIds"] = persona?.Roles.Select(r => r.Id).ToList() ?? []
+        };
+
+        var dialog = await DialogService.ShowAsync<Form>(persona is null ? "Nueva Persona" : "Editar Persona", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadData();
+    }
+
+    private async Task DeletePersona(ElencoConRolesDto persona)
+    {
+        var confirm = await DialogService.ShowMessageBoxAsync(
+            "Eliminar Persona",
+            $"¿Eliminar a '{persona.Nombre}'?",
+            yesText: "Eliminar",
+            cancelText: "Cancelar");
+
+        if (confirm != true) return;
+
+        try
+        {
+            var success = await ElencoService.DeleteAsync(persona.Id);
+            if (success)
+            {
+                Snackbar.Add("Persona eliminada correctamente", Severity.Success);
+                await LoadData();
+            }
+            else
+            {
+                Snackbar.Add("No se pudo eliminar la persona", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al eliminar: {ex.Message}", Severity.Error);
+        }
+    }
+}

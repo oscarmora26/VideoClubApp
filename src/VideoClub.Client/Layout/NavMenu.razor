@@ -9,6 +9,14 @@
     <MudNavLink Href="clientes">
         <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-2" /> Clientes
     </MudNavLink>
+    <AuthorizeView Roles="Administrador">
+        <MudNavLink Href="elenco" Match="NavLinkMatch.All">
+            <MudIcon Icon="@Icons.Material.Filled.Cast" Class="mr-2" /> Elenco
+        </MudNavLink>
+        <MudNavLink Href="elenco/roles">
+            <MudIcon Icon="@Icons.Material.Filled.Badge" Class="mr-2" /> Roles
+        </MudNavLink>
+    </AuthorizeView>
 
     <MudDivider Class="my-2" />
 

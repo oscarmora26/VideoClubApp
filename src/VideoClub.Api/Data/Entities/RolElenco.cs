@@ -6,4 +6,5 @@ public class RolElenco : AuditableEntity
     public string Descripcion { get; set; } = string.Empty;
 
     public ICollection<ElencoArticulo> ElencosArticulos { get; set; } = new List<ElencoArticulo>();
+    public ICollection<ElencoRol> Elencos { get; set; } = new List<ElencoRol>();
 }

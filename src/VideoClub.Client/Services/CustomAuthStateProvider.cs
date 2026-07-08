@@ -36,6 +36,10 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
                 new(ClaimTypes.Name, await _js.InvokeAsync<string>("localStorage.getItem", "auth_user"))
             };
 
+            var role = await _js.InvokeAsync<string>("localStorage.getItem", "auth_role");
+            if (!string.IsNullOrEmpty(role))
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
             var identity = new ClaimsIdentity(claims, "jwt");
             _currentUser = new ClaimsPrincipal(identity);
         }
