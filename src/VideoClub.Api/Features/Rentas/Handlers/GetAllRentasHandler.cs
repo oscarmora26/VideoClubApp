@@ -25,7 +25,7 @@ public class GetAllRentasHandler : IRequestHandler<GetAllRentasQuery, Result<Lis
         var query = _db.Rentas.AsQueryable();
 
         if (!string.IsNullOrEmpty(request.Search))
-            query = query.Where(r => r.NoRenta.Contains(request.Search) || r.Cliente.Nombre.Contains(request.Search));
+            query = query.Where(r => r.NoRenta.Contains(request.Search) || r.Cliente.Nombre.ToLower().Contains(request.Search.ToLower()) || r.Cliente.Cedula.ToLower().Contains(request.Search.ToLower()));
 
         if (!string.IsNullOrEmpty(request.Estado))
             query = query.Where(r => r.EstadoRenta == request.Estado);
