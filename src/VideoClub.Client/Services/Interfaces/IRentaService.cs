@@ -8,4 +8,5 @@ public interface IRentaService
     Task<RentaWithDetailsDto?> GetByIdAsync(long id);
     Task<RentaWithDetailsDto?> CreateAsync(CreateRentaRequest request);
     Task<RentaWithDetailsDto?> UpdateAsync(long id, UpdateRentaRequest request);
+    Task<byte[]> ExportExcelAsync(string? search, string? estado, DateTime? desde, DateTime? hasta);
 }

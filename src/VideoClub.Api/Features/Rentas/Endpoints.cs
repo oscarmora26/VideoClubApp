@@ -10,15 +10,21 @@ public static class Endpoints
 {
     public static RouteGroupBuilder MapRentaEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (string? search, string? estado, DateTime? desde, DateTime? hasta, IMediator mediator) =>
+        group.MapGet("/", async (string? search, string? estado, DateTime? desde, DateTime? hasta, bool? export, IMediator mediator) =>
         {
+            if (export == true)
+            {
+                var bytes = await mediator.Send(new ExportRentasQuery(search, estado, desde, hasta));
+                return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "rentas.xlsx");
+            }
+
             var result = await mediator.Send(new GetAllRentasQuery(search, estado, desde, hasta));
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(detail: result.Error, statusCode: 500);
         }).WithName("GetAllRentas")
           .WithSummary("Lista todas las rentas")
-          .WithDescription("Obtener todas las rentas con filtros opcionales")
+          .WithDescription("Obtener todas las rentas con filtros opcionales. Use export=true para descargar Excel.")
           .Produces<List<RentaDto>>(StatusCodes.Status200OK)
           .ProducesProblem(StatusCodes.Status500InternalServerError);
 

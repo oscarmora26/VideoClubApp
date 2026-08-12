@@ -37,4 +37,16 @@ public class RentaService : IRentaService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<RentaWithDetailsDto>();
     }
+
+    public async Task<byte[]> ExportExcelAsync(string? search, string? estado, DateTime? desde, DateTime? hasta)
+    {
+        var query = new List<string> { "export=true" };
+        if (!string.IsNullOrEmpty(search)) query.Add($"search={Uri.EscapeDataString(search)}");
+        if (!string.IsNullOrEmpty(estado)) query.Add($"estado={Uri.EscapeDataString(estado)}");
+        if (desde.HasValue) query.Add($"desde={desde.Value:yyyy-MM-dd}");
+        if (hasta.HasValue) query.Add($"hasta={hasta.Value:yyyy-MM-dd}");
+        var response = await _http.GetAsync($"api/rentas?{string.Join("&", query)}");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
 }

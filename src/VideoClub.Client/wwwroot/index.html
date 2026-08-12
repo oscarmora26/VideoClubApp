@@ -35,6 +35,24 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script>
+        window.downloadFile = function (base64, fileName) {
+            const bytes = atob(base64);
+            const array = new Uint8Array(bytes.length);
+            for (let i = 0; i < bytes.length; i++) {
+                array[i] = bytes.charCodeAt(i);
+            }
+            const blob = new Blob([array], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+    </script>
 </body>
 
 </html>

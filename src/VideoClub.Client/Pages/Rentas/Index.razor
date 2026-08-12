@@ -3,6 +3,8 @@
 @inject IRentaService RentaService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+
 
 <MudText Typo="Typo.h5" Class="mb-3">Rentas</MudText>
 
@@ -49,12 +51,24 @@
                            Dense="true"
                            Class="w-100" />
         </div>
-        <MudButton Variant="Variant.Filled" 
+        <MudButton Variant="Variant.Filled"
                     Color="Color.Primary"
                     StartIcon="@Icons.Material.Filled.Add"
                     style="height: 60px;"
                     Href="rentas/nueva">
             Nueva Renta
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                    Color="Color.Success"
+                    StartIcon="@Icons.Material.Filled.FileDownload"
+                    Disabled="@_exporting"
+                    style="height: 60px;"
+                    OnClick="ExportExcel">
+            @if (_exporting)
+            {
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-1" />
+            }
+            Exportar Excel
         </MudButton>
     </div>
 </MudPaper>
@@ -121,6 +135,7 @@ else
     private DateTime? _desdeFilter;
     private DateTime? _hastaFilter;
     private bool _loading;
+    private bool _exporting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,6 +152,28 @@ else
     {
         _hastaFilter = value;
         await LoadData();
+    }
+
+    private async Task ExportExcel()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var bytes = await RentaService.ExportExcelAsync(_searchTerm, _estadoFilter, _desdeFilter, _hastaFilter);
+            var base64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("downloadFile", base64, "rentas.xlsx");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al exportar: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
     }
 
     private async Task LoadData()
